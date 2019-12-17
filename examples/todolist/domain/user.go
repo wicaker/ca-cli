@@ -26,6 +26,8 @@ type UserUsecase interface {
 // UserRepository represent the User's repository contract
 type UserRepository interface {
 	GetByID(ctx context.Context, id uint64) (*User, error)
+	GetByEmail(ctx context.Context, email string) (*User, error)
+	GetByUsername(ctx context.Context, username string) (*User, error)
 	Register(ctx context.Context, t *User) error
 	Login(ctx context.Context, u *User) (string, error)
 }
