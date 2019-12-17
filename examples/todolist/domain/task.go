@@ -12,7 +12,7 @@ type Task struct {
 	Description string     `json:"description"`
 	DueDate     time.Time  `json:"due_date"`
 	Completed   bool       `json:"completed"`
-	User        User       `json:"user"`
+	UserID      uint64     `json:"user_id"`
 	UpdatedAt   time.Time  `json:"updated_at"`
 	CreatedAt   time.Time  `json:"created_at"`
 	DeletedAt   *time.Time `json:"deleted_at"`
