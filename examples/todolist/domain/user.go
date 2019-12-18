@@ -29,5 +29,4 @@ type UserRepository interface {
 	GetByEmail(ctx context.Context, email string) (*User, error)
 	GetByUsername(ctx context.Context, username string) (*User, error)
 	Register(ctx context.Context, t *User) error
-	Login(ctx context.Context, u *User) (string, error)
 }
