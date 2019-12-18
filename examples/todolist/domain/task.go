@@ -31,7 +31,7 @@ type TaskUsecase interface {
 type TaskRepository interface {
 	Fetch(ctx context.Context, userID uint64) ([]*Task, error)
 	GetByID(ctx context.Context, id uint64) (*Task, error)
-	Store(ctx context.Context, userID uint64, t *Task) error
+	Store(ctx context.Context, t *Task) error
 	Update(ctx context.Context, t *Task) error
 	Delete(ctx context.Context, id uint64) error
 }

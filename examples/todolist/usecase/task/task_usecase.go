@@ -68,6 +68,7 @@ func (tu *taskUsecase) Store(ctx context.Context, userID uint64, t *domain.Task)
 		return errors.New("User Id not appropriate")
 	}
 
+	t.UserID = userID
 	err = tu.taskRepo.Store(ctx, userID, t)
 	if err != nil {
 		return err
