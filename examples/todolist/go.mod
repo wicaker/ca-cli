@@ -12,4 +12,5 @@ require (
 	github.com/vektra/mockery v0.0.0-20181123154057-e78b021dcbb5 // indirect
 	golang.org/x/crypto v0.0.0-20191206172530-e9b2fee46413
 	gopkg.in/DATA-DOG/go-sqlmock.v1 v1.3.0
+	gopkg.in/go-playground/assert.v1 v1.2.1
 )
