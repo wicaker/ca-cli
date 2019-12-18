@@ -78,7 +78,7 @@ func (tu *userUsecase) Login(ctx context.Context, t *domain.User) (string, error
 	if err != nil {
 		return "", err
 	}
-	if checkEmail != nil {
+	if checkEmail.Email != "" {
 		user = checkEmail
 	}
 
@@ -86,7 +86,7 @@ func (tu *userUsecase) Login(ctx context.Context, t *domain.User) (string, error
 	if err != nil {
 		return "", err
 	}
-	if checkUsername != nil {
+	if checkUsername.Username != "" {
 		user = checkUsername
 	}
 
