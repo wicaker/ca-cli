@@ -69,7 +69,7 @@ func (tu *taskUsecase) Store(ctx context.Context, userID uint64, t *domain.Task)
 	}
 
 	t.UserID = userID
-	err = tu.taskRepo.Store(ctx, userID, t)
+	err = tu.taskRepo.Store(ctx, t)
 	if err != nil {
 		return err
 	}
