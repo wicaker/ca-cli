@@ -29,11 +29,8 @@ func (db *userGopgRepository) GetByID(ctx context.Context, id uint64) (*domain.U
 
 func (db *userGopgRepository) GetByEmail(ctx context.Context, email string) (*domain.User, error) {
 	user := new(domain.User)
-	// var user domain.User
-	err := db.DB.Model(user).
-		Relation("Author").
-		Where("user.email = ?", email).
-		Select()
+
+	err := db.DB.Model(user).Where("email = ?", email).Select()
 	if err != nil {
 		return nil, err
 	}
@@ -43,11 +40,8 @@ func (db *userGopgRepository) GetByEmail(ctx context.Context, email string) (*do
 
 func (db *userGopgRepository) GetByUsername(ctx context.Context, username string) (*domain.User, error) {
 	user := new(domain.User)
-	// var user domain.User
-	err := db.DB.Model(user).
-		Relation("Author").
-		Where("user.username = ?", username).
-		Select()
+
+	err := db.DB.Model(user).Where("username = ?", username).Select()
 	if err != nil {
 		return nil, err
 	}
