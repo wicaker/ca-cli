@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+package proto;
+
+message User {
+  uint64 id = 1;
+  string username = 2;
+  string email = 3;
+  string password = 4;
+  string name = 5;
+}
+
+message Error {
+	uint32 code = 1;
+	string message = 2;
+}
+
+
+message RegisterReq{
+  User user = 1;
+}
+message RegisterResp{
+  string message = 1;
+  Error error = 2;
+}
+
+message LoginReq{
+  string username = 1;
+  string email = 2;
+  string password = 3;
+}
+message LoginResp{
+  string token = 1;
+  Error error = 2;
+}
+
+service UserService {
+  rpc Register(RegisterReq) returns (RegisterResp);
+  rpc Login(LoginReq) returns (LoginResp);
+}
