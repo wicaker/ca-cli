@@ -2,6 +2,11 @@ package domain
 
 import "errors"
 
+// ResponseError represent the reseponse error struct
+type ResponseError struct {
+	Message string `json:"message"`
+}
+
 var (
 	// ErrInternalServerError will throw if any the Internal Server Error happen
 	ErrInternalServerError = errors.New("Internal Server Error")
