@@ -2,6 +2,7 @@ package user_test
 
 import (
 	"context"
+	"errors"
 	"testing"
 	"time"
 
@@ -25,12 +26,12 @@ func TestRegister(t *testing.T) {
 	}
 
 	t.Run("success", func(t *testing.T) {
-		noExistedUser := &domain.User{}
+		// noExistedUser := &domain.User{}
 		tempMockUser := mockUser
 		tempMockUser.ID = 0
 
-		mockUserRepo.On("GetByEmail", mock.Anything, mock.AnythingOfType("string")).Return(noExistedUser, nil).Once()
-		mockUserRepo.On("GetByUsername", mock.Anything, mock.AnythingOfType("string")).Return(noExistedUser, nil).Once()
+		mockUserRepo.On("GetByEmail", mock.Anything, mock.AnythingOfType("string")).Return(nil, errors.New("no db found")).Once()
+		mockUserRepo.On("GetByUsername", mock.Anything, mock.AnythingOfType("string")).Return(nil, errors.New("no db found")).Once()
 		mockUserRepo.On("Register", mock.Anything, mock.AnythingOfType("*domain.User")).Return(nil).Once()
 
 		usecase := ucase.NewUserUsecase(mockUserRepo, time.Second*2)
@@ -65,10 +66,10 @@ func TestLogin(t *testing.T) {
 		tempMockUser.Password = "test123"
 
 		mockUserRepo.On("GetByEmail", mock.Anything, mock.AnythingOfType("string")).Return(&mockUser, nil).Once()
-		mockUserRepo.On("GetByUsername", mock.Anything, mock.AnythingOfType("string")).Return(&mockUser, nil).Once()
+		// mockUserRepo.On("GetByUsername", mock.Anything, mock.AnythingOfType("string")).Return(&mockUser, nil).Once()
 		// mockUserRepo.On("Login", mock.Anything, mock.AnythingOfType("*domain.User")).Return(mock.AnythingOfType("string"), nil).Once()
 
-		usecase := ucase.NewUserUsecase(mockUserRepo, time.Millisecond*100)
+		usecase := ucase.NewUserUsecase(mockUserRepo, time.Second*2)
 		_, err = usecase.Login(context.TODO(), &tempMockUser)
 
 		assert.NoError(t, err)
@@ -82,7 +83,7 @@ func TestLogin(t *testing.T) {
 		tempMockUser.ID = 0
 
 		mockUserRepo.On("GetByEmail", mock.Anything, mock.AnythingOfType("string")).Return(&mockUser, nil).Once()
-		mockUserRepo.On("GetByUsername", mock.Anything, mock.AnythingOfType("string")).Return(&mockUser, nil).Once()
+		// mockUserRepo.On("GetByUsername", mock.Anything, mock.AnythingOfType("string")).Return(&mockUser, nil).Once()
 		// mockUserRepo.On("Login", mock.Anything, mock.AnythingOfType("*domain.User")).Return("", mock.AnythingOfType("error")).Once()
 
 		usecase := ucase.NewUserUsecase(mockUserRepo, time.Millisecond*100)
@@ -92,4 +93,19 @@ func TestLogin(t *testing.T) {
 		assert.Equal(t, mockUser.Email, tempMockUser.Email)
 		mockUserRepo.AssertExpectations(t)
 	})
+
+	t.Run("failed context deadline exceeded", func(t *testing.T) {
+		tempMockUser := mockUser
+		tempMockUser.ID = 0
+
+		mockUserRepo.On("GetByEmail", mock.Anything, mock.AnythingOfType("string")).Return(&mockUser, nil).Once()
+		mockUserRepo.On("GetByUsername", mock.Anything, mock.AnythingOfType("string")).Return(&mockUser, nil).Once()
+
+		usecase := ucase.NewUserUsecase(mockUserRepo, time.Millisecond*1)
+		token, err := usecase.Login(context.TODO(), &tempMockUser)
+
+		assert.Error(t, err)
+		assert.Equal(t, token, "")
+	})
+
 }
