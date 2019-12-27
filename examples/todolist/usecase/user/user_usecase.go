@@ -64,22 +64,25 @@ func (tu *userUsecase) Register(ctx context.Context, t *domain.User) error {
 		}
 
 		// Password Encryption
-		pass, err := bcrypt.GenerateFromPassword([]byte(t.Password), bcrypt.DefaultCost)
-		if err != nil {
-			c <- errors.New("Password Encryption failed")
-			return
-		}
-		t.Password = string(pass)
+		if ctx.Err() == nil {
+			pass, err := bcrypt.GenerateFromPassword([]byte(t.Password), bcrypt.DefaultCost)
+			if err != nil {
+				c <- errors.New("Password Encryption failed")
+				return
+			}
+			t.Password = string(pass)
 
-		// Save new user data
-		err = tu.userRepo.Register(ctx, t)
-		if err != nil {
-			c <- err
-			return
+			// Save new user data
+			if ctx.Err() == nil {
+				err := tu.userRepo.Register(ctx, t)
+				if err != nil {
+					c <- err
+					return
+				}
+				c <- nil
+				return
+			}
 		}
-
-		c <- nil
-		return
 	}()
 
 	// stop run service when timeout
@@ -92,8 +95,7 @@ func (tu *userUsecase) Register(ctx context.Context, t *domain.User) error {
 	}()
 
 	// catch return value from go channel
-	y := <-c
-	return y
+	return <-c
 }
 
 func (tu *userUsecase) Login(ctx context.Context, t *domain.User) (string, error) {

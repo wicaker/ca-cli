@@ -21,7 +21,7 @@ func Echo(db interface{}) *echo.Echo {
 	e.Use(middL.MiddlewareLogging)
 	e.Use(middL.CORS)
 
-	timeoutContext := time.Duration(2) * time.Millisecond
+	timeoutContext := time.Duration(60) * time.Millisecond
 
 	userRepo := _userGopgRepo.NewUserGopgRepository(database)
 	userUcase := _userUseCase.NewUserUsecase(userRepo, timeoutContext)
