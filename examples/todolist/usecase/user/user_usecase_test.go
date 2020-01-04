@@ -2,7 +2,6 @@ package user_test
 
 import (
 	"context"
-	"errors"
 	"testing"
 	"time"
 
@@ -30,8 +29,8 @@ func TestRegister(t *testing.T) {
 		tempMockUser := mockUser
 		tempMockUser.ID = 0
 
-		mockUserRepo.On("GetByEmail", mock.Anything, mock.AnythingOfType("string")).Return(nil, errors.New("no db found")).Once()
-		mockUserRepo.On("GetByUsername", mock.Anything, mock.AnythingOfType("string")).Return(nil, errors.New("no db found")).Once()
+		mockUserRepo.On("GetByEmail", mock.Anything, mock.AnythingOfType("string")).Return(nil, nil).Once()
+		mockUserRepo.On("GetByUsername", mock.Anything, mock.AnythingOfType("string")).Return(nil, nil).Once()
 		mockUserRepo.On("Register", mock.Anything, mock.AnythingOfType("*domain.User")).Return(nil).Once()
 
 		usecase := ucase.NewUserUsecase(mockUserRepo, time.Second*2)

@@ -2,7 +2,6 @@ package task
 
 import (
 	"context"
-	"errors"
 	"time"
 	"todolist/domain"
 )
@@ -31,7 +30,7 @@ func (tu *taskUsecase) Fetch(ctx context.Context, userID uint64) ([]*domain.Task
 		return nil, err
 	}
 	if user == nil {
-		return nil, errors.New("User Id not appropriate")
+		return nil, domain.ErrNotFound
 	}
 
 	tasks, err := tu.taskRepo.Fetch(ctx, user.ID)
@@ -50,31 +49,31 @@ func (tu *taskUsecase) GetByID(ctx context.Context, id uint64) (*domain.Task, er
 		return nil, err
 	}
 	if task == nil {
-		return nil, errors.New("Task not found")
+		return nil, domain.ErrNotFound
 	}
 
 	return task, nil
 }
 
-func (tu *taskUsecase) Store(ctx context.Context, userID uint64, t *domain.Task) error {
+func (tu *taskUsecase) Store(ctx context.Context, userID uint64, t *domain.Task) (*domain.Task, error) {
 	ctx, cancel := context.WithTimeout(ctx, tu.contextTimeout)
 	defer cancel()
 
 	user, err := tu.userRepo.GetByID(ctx, userID)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if user == nil {
-		return errors.New("User Id not appropriate")
+		return nil, domain.ErrNotFound
 	}
 
 	t.UserID = userID
-	err = tu.taskRepo.Store(ctx, t)
+	task, err := tu.taskRepo.Store(ctx, t)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return task, nil
 }
 
 func (tu *taskUsecase) Update(ctx context.Context, t *domain.Task) error {
@@ -86,9 +85,10 @@ func (tu *taskUsecase) Update(ctx context.Context, t *domain.Task) error {
 		return err
 	}
 	if task == nil {
-		return errors.New("Task not found")
+		return domain.ErrNotFound
 	}
 
+	t.CreatedAt = task.CreatedAt
 	t.UpdatedAt = time.Now()
 	err = tu.taskRepo.Update(ctx, t)
 	if err != nil {
@@ -106,7 +106,7 @@ func (tu *taskUsecase) Delete(ctx context.Context, id uint64) error {
 		return err
 	}
 	if task == nil {
-		return errors.New("Task not found")
+		return domain.ErrNotFound
 	}
 
 	err = tu.taskRepo.Delete(ctx, id)

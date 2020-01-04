@@ -13,6 +13,7 @@ import (
 )
 
 type userUsecase struct {
+	x              chan error
 	userRepo       domain.UserRepository
 	contextTimeout time.Duration
 }
@@ -41,24 +42,24 @@ func (tu *userUsecase) Register(ctx context.Context, t *domain.User) error {
 
 		if t.Email != "" {
 			checkEmail, err := tu.userRepo.GetByEmail(ctx, t.Email)
-			if err == nil {
-				c <- errors.New("Email already in database, use another name")
+			if err != nil {
+				c <- err
 				return
 			}
 			if checkEmail != nil {
-				c <- errors.New("Email already in database, use another name")
+				c <- domain.ErrConflict
 				return
 			}
 		}
 
 		if t.Username != "" {
 			checkUsername, err := tu.userRepo.GetByUsername(ctx, t.Username)
-			if err == nil {
-				c <- errors.New("Username already in database, use another name")
+			if err != nil {
+				c <- err
 				return
 			}
 			if checkUsername != nil {
-				c <- errors.New("Username already in database, use another name")
+				c <- domain.ErrConflict
 				return
 			}
 		}
@@ -110,23 +111,23 @@ func (tu *userUsecase) Login(ctx context.Context, t *domain.User) (string, error
 		if t.Email != "" {
 			checkEmail, err := tu.userRepo.GetByEmail(ctx, t.Email)
 			if err != nil {
-				c <- (func() (string, error) { return "", errors.New("user not found") })
+				c <- (func() (string, error) { return "", err })
 				return
 			}
 			if checkEmail == nil {
-				c <- (func() (string, error) { return "", errors.New("user not found") })
+				c <- (func() (string, error) { return "", domain.ErrNotFound })
 				return
 			}
+
 			user = checkEmail
 		} else if t.Username != "" {
 			checkUsername, err := tu.userRepo.GetByUsername(ctx, t.Username)
-
 			if err != nil {
-				c <- (func() (string, error) { return "", errors.New("user not found") })
+				c <- (func() (string, error) { return "", err })
 				return
 			}
 			if checkUsername == nil {
-				c <- (func() (string, error) { return "", errors.New("user not found") })
+				c <- (func() (string, error) { return "", domain.ErrNotFound })
 				return
 			}
 
@@ -136,41 +137,35 @@ func (tu *userUsecase) Login(ctx context.Context, t *domain.User) (string, error
 			return
 		}
 
-		//Token struct declaration
-		type Token struct {
-			ID       uint64
-			Name     string
-			Email    string
-			Username string
-			*jwt.StandardClaims
-		}
-
 		// process of creating token
-		expiresAt := time.Now().Add(time.Minute * 100000).Unix()
-		errf := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(t.Password))
-		if errf != nil && errf == bcrypt.ErrMismatchedHashAndPassword { //Password does not match!
-			c <- (func() (string, error) { return "", errors.New("Invalid login credentials. Please try again") })
-			return
-		}
+		if ctx.Err() == nil {
+			expiresAt := time.Now().Add(time.Minute * 100000).Unix()
+			errf := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(t.Password))
+			if errf != nil && errf == bcrypt.ErrMismatchedHashAndPassword { //Password does not match!
+				c <- (func() (string, error) { return "", errors.New("Invalid login credentials. Please try again") })
+				return
+			}
 
-		tk := &Token{
-			ID:       user.ID,
-			Name:     user.Name,
-			Email:    user.Email,
-			Username: user.Username,
-			StandardClaims: &jwt.StandardClaims{
-				ExpiresAt: expiresAt,
-			},
-		}
+			tk := &domain.Token{
+				ID:       user.ID,
+				Name:     user.Name,
+				Email:    user.Email,
+				Username: user.Username,
+				StandardClaims: &jwt.StandardClaims{
+					ExpiresAt: expiresAt,
+				},
+			}
+			if ctx.Err() == nil {
+				token := jwt.NewWithClaims(jwt.GetSigningMethod("HS256"), tk)
+				tokenString, err := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
+				if err != nil {
+					c <- (func() (string, error) { return "", err })
+				}
 
-		token := jwt.NewWithClaims(jwt.GetSigningMethod("HS256"), tk)
-		tokenString, err := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
-		if err != nil {
-			c <- (func() (string, error) { return "", err })
+				c <- (func() (string, error) { return tokenString, nil })
+				return
+			}
 		}
-
-		c <- (func() (string, error) { return tokenString, nil })
-		return
 	}()
 
 	// stop run service when timeout

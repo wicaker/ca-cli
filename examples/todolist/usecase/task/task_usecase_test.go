@@ -2,7 +2,6 @@ package task_test
 
 import (
 	"context"
-	"fmt"
 	"testing"
 	"time"
 	"todolist/domain"
@@ -61,8 +60,6 @@ func TestFetch(t *testing.T) {
 
 		usecase := ucase.NewTaskUsecase(mockTaskRepo, mockUserRepo, time.Millisecond*100)
 		listTask, err := usecase.Fetch(context.TODO(), mockUser.ID)
-		fmt.Println(listTask)
-		fmt.Println(err)
 
 		assert.Empty(t, listTask)
 		assert.Error(t, err)
