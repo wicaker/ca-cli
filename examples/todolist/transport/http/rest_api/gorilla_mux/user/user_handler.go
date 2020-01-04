@@ -31,7 +31,7 @@ func (uh *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
-		w.WriteHeader(400)
+		w.WriteHeader(http.StatusUnprocessableEntity)
 		json.NewEncoder(w).Encode(&domain.ResponseError{Message: err.Error()})
 		return
 	}
@@ -41,7 +41,10 @@ func (uh *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctx := context.Background()
+	ctx := r.Context()
+	if ctx == nil {
+		ctx = context.Background()
+	}
 
 	if err := uh.UserUsecase.Register(ctx, &user); err != nil {
 		w.WriteHeader(400)
@@ -61,7 +64,7 @@ func (uh *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
-		w.WriteHeader(400)
+		w.WriteHeader(http.StatusUnprocessableEntity)
 		json.NewEncoder(w).Encode(&domain.ResponseError{Message: err.Error()})
 		return
 	}
@@ -71,7 +74,10 @@ func (uh *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctx := context.Background()
+	ctx := r.Context()
+	if ctx == nil {
+		ctx = context.Background()
+	}
 	type data struct {
 		Token string `json:"token"`
 	}
@@ -84,7 +90,7 @@ func (uh *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(201)
+	w.WriteHeader(200)
 	json.NewEncoder(w).Encode(&domain.ResponseSuccess{Message: "Login successfully", Data: d})
 	return
 }
