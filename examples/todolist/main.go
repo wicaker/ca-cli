@@ -7,8 +7,11 @@ import (
 	"todolist/database/config"
 	"todolist/server"
 
+	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/jinzhu/gorm/dialects/postgres"
 	"github.com/joho/godotenv"
 	log "github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 )
 
 func init() {
@@ -19,37 +22,40 @@ func init() {
 	}
 
 	// viper configuration
-	// viper.SetConfigFile(`config.json`)
-	// err := viper.ReadInConfig()
-	// if err != nil {
-	// 	panic(err)
-	// }
+	viper.SetConfigFile(`config.json`)
+	err := viper.ReadInConfig()
+	if err != nil {
+		panic(err)
+	}
 }
 
 func main() {
 	dbGopg := config.GopgInit()
+	dbSqlx := config.SqlxInit()
+	dbSQL := config.SQLInit()
+	dbGorm := config.GormInit()
 
 	// conccurrent
 	errChan := make(chan error)
 
 	// echo server
 	go func() {
-		eServer := server.Echo(dbGopg)
-		log.Fatal(eServer.Start(":" + "9090"))
+		eServer := server.Echo(dbSqlx)
+		log.Fatal(eServer.Start(viper.GetString("server.echo.address")))
 	}()
 
 	// gin server
 	go func() {
 		gServer := server.Gin(dbGopg)
-		log.Fatal(gServer.Run(":" + "8090"))
+		log.Fatal(gServer.Run(viper.GetString("server.gin.address")))
 	}()
 
 	// gorilla mux server
 	go func() {
-		gmServer := server.GorillaMux(dbGopg)
+		gmServer := server.GorillaMux(dbSQL)
 		srv := &http.Server{
 			Handler: gmServer,
-			Addr:    "127.0.0.1:7090",
+			Addr:    viper.GetString("server.gorilla-mux.address"),
 			// Good practice: enforce timeouts for servers you create!
 			WriteTimeout: 15 * time.Second,
 			ReadTimeout:  15 * time.Second,
@@ -60,10 +66,10 @@ func main() {
 
 	// net/http ServeMux
 	go func() {
-		httpMuxServer := server.ServeMux(dbGopg)
+		httpMuxServer := server.ServeMux(dbGorm)
 		srv := &http.Server{
 			Handler: httpMuxServer,
-			Addr:    "127.0.0.1:6090",
+			Addr:    viper.GetString("server.net-http-server-mux.address"),
 			// Good practice: enforce timeouts for servers you create!
 			WriteTimeout: 15 * time.Second,
 			ReadTimeout:  15 * time.Second,
@@ -77,7 +83,7 @@ func main() {
 		httpMuxServer := server.GraphQLServer(dbGopg)
 		srv := &http.Server{
 			Handler: httpMuxServer,
-			Addr:    "127.0.0.1:5090",
+			Addr:    viper.GetString("server.graphql-server-mux.address"),
 			// Good practice: enforce timeouts for servers you create!
 			WriteTimeout: 15 * time.Second,
 			ReadTimeout:  15 * time.Second,
@@ -89,10 +95,10 @@ func main() {
 	// gRPC server
 	go func() {
 		// 50051 is the default port for gRPC
-		listener, err := net.Listen("tcp", ":50051")
+		listener, err := net.Listen("tcp", viper.GetString("server.grpc.address"))
 
 		if err != nil {
-			log.Fatalf("Unable to listen on port :50051: %v", err)
+			log.Fatalf("Unable to listen on port :%v : %v", viper.GetString("server.grpc.address"), err)
 		}
 
 		s := server.GRPCServer(dbGopg)
