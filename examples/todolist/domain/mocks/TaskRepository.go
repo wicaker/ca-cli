@@ -71,18 +71,27 @@ func (_m *TaskRepository) GetByID(ctx context.Context, id uint64) (*domain.Task,
 	return r0, r1
 }
 
-// Store provides a mock function with given fields: ctx, userID, t
-func (_m *TaskRepository) Store(ctx context.Context, userID uint64, t *domain.Task) error {
-	ret := _m.Called(ctx, userID, t)
+// Store provides a mock function with given fields: ctx, t
+func (_m *TaskRepository) Store(ctx context.Context, t *domain.Task) (*domain.Task, error) {
+	ret := _m.Called(ctx, t)
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, uint64, *domain.Task) error); ok {
-		r0 = rf(ctx, userID, t)
+	var r0 *domain.Task
+	if rf, ok := ret.Get(0).(func(context.Context, *domain.Task) *domain.Task); ok {
+		r0 = rf(ctx, t)
 	} else {
-		r0 = ret.Error(0)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*domain.Task)
+		}
 	}
 
-	return r0
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *domain.Task) error); ok {
+		r1 = rf(ctx, t)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // Update provides a mock function with given fields: ctx, t

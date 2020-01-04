@@ -12,9 +12,9 @@ type User struct {
 	Email     string     `json:"email"`
 	Password  string     `json:"password"`
 	Name      string     `json:"name"`
-	UpdatedAt time.Time  `json:"updated_at"`
-	CreatedAt time.Time  `json:"created_at"`
-	DeletedAt *time.Time `json:"deleted_at"`
+	UpdatedAt time.Time  `json:"updated_at" db:"updated_at"`
+	CreatedAt time.Time  `json:"created_at" db:"created_at"`
+	DeletedAt *time.Time `json:"deleted_at" db:"deleted_at"`
 }
 
 // UserUsecase represent the User's usecases contract
