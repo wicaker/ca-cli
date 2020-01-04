@@ -41,13 +41,28 @@ func main() {
 	// echo server
 	go func() {
 		eServer := server.Echo(dbSqlx)
-		log.Fatal(eServer.Start(viper.GetString("server.echo.address")))
+		srv := &http.Server{
+			Addr: viper.GetString("server.echo.address"),
+			// Good practice: enforce timeouts for servers you create!
+			WriteTimeout: 15 * time.Second,
+			ReadTimeout:  15 * time.Second,
+		}
+
+		log.Fatal(eServer.StartServer(srv))
 	}()
 
 	// gin server
 	go func() {
 		gServer := server.Gin(dbGopg)
-		log.Fatal(gServer.Run(viper.GetString("server.gin.address")))
+		srv := &http.Server{
+			Handler: gServer,
+			Addr:    viper.GetString("server.gin.address"),
+			// Good practice: enforce timeouts for servers you create!
+			WriteTimeout: 15 * time.Second,
+			ReadTimeout:  15 * time.Second,
+		}
+
+		log.Fatal(srv.ListenAndServe())
 	}()
 
 	// gorilla mux server
