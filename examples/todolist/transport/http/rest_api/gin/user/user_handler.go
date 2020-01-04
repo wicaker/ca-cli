@@ -38,10 +38,10 @@ func (uh *UserHandler) Register(c *gin.Context) {
 		return
 	}
 
-	// ctx := c.Request.WithContext(c)
-	// if ctx == nil {
-	ctx := context.Background()
-	// }
+	ctx := c.Request.Context()
+	if ctx == nil {
+		ctx = context.Background()
+	}
 
 	err = uh.UserUsecase.Register(ctx, &user)
 
@@ -67,7 +67,10 @@ func (uh *UserHandler) Login(c *gin.Context) {
 		return
 	}
 
-	ctx := context.Background()
+	ctx := c.Request.Context()
+	if ctx == nil {
+		ctx = context.Background()
+	}
 
 	type data struct {
 		Token string `json:"token"`
@@ -81,5 +84,5 @@ func (uh *UserHandler) Login(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, domain.ResponseSuccess{Message: "Login successfully", Data: d})
+	c.JSON(http.StatusOK, domain.ResponseSuccess{Message: "Login successfully", Data: d})
 }
