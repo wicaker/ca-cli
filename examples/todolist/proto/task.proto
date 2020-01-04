@@ -1,0 +1,66 @@
+syntax = "proto3";
+
+package proto;
+
+import "google/protobuf/timestamp.proto";
+
+message Task {
+  uint64 id = 1;
+  string title = 2;
+  string description = 3;
+  google.protobuf.Timestamp dueDate = 4;
+  bool completed= 5;
+  google.protobuf.Timestamp createdAt = 6;
+  google.protobuf.Timestamp updatedAt = 7;
+}
+
+message FetchTaskReq{
+  string xAccessToken = 1;
+}
+message FetchTaskResp{
+  repeated Task task = 1;
+}
+
+message GetByIDTaskReq{
+  string xAccessToken = 1;
+  uint64 idTask = 2;
+}
+message GetByIDTaskResp{
+  Task task = 1;
+}
+
+message CreateTaskReq{
+  string xAccessToken = 1;
+  Task task = 2;
+}
+message CreateTaskResp{
+  Task task = 1;
+  string message = 2;
+}
+
+message UpdateTaskReq{
+  string xAccessToken = 1;
+  uint64 idTask = 2;
+  Task task = 3;
+}
+message UpdateTaskResp{
+  Task task = 1;
+  string message = 2;
+}
+
+message DeleteTaskReq{
+  string xAccessToken = 1;
+  uint64 idTask = 2;
+}
+message DeleteTaskResp{
+  Task task = 1;
+  string message = 2;
+}
+
+service TaskService {
+  rpc FetchTask(FetchTaskReq) returns (FetchTaskResp);
+  rpc GetByIDTask(GetByIDTaskReq) returns (GetByIDTaskResp);
+  rpc CreateTask(CreateTaskReq) returns (CreateTaskResp);
+  rpc UpdateTask(UpdateTaskReq) returns (UpdateTaskResp);
+  rpc DeleteTask(DeleteTaskReq) returns (DeleteTaskResp);
+}
