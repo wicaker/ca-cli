@@ -20,8 +20,27 @@ func NewUserHandler(r *http.ServeMux, u domain.UserUsecase) {
 		UserUsecase: u,
 	}
 
-	r.HandleFunc("/user/register", handler.Register)
-	r.HandleFunc("/user/login", handler.Login)
+	// r.HandleFunc("/user/register", handler.Register)
+	// r.HandleFunc("/user/login", handler.Login)
+	r.Handle("/user", handler)
+}
+
+func (uh *UserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	uri := ctx.Value("uri")
+	if uri == "/user/register" && r.Method == http.MethodPost {
+		uh.Register(w, r)
+		return
+	}
+
+	if uri == "/user/login" && r.Method == http.MethodPost {
+		uh.Login(w, r)
+		return
+	}
+
+	w.WriteHeader(http.StatusMethodNotAllowed)
+	json.NewEncoder(w).Encode(&domain.ResponseError{Message: "Method Not Allowed"})
+	return
 }
 
 // Register will handle register request
@@ -40,7 +59,10 @@ func (uh *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctx := context.Background()
+	ctx := r.Context()
+	if ctx == nil {
+		ctx = context.Background()
+	}
 
 	if err := uh.UserUsecase.Register(ctx, &user); err != nil {
 		w.WriteHeader(400)
@@ -70,7 +92,11 @@ func (uh *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctx := context.Background()
+	ctx := r.Context()
+	if ctx == nil {
+		ctx = context.Background()
+	}
+
 	type data struct {
 		Token string `json:"token"`
 	}
@@ -83,7 +109,7 @@ func (uh *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(201)
+	w.WriteHeader(200)
 	json.NewEncoder(w).Encode(&domain.ResponseSuccess{Message: "Login successfully", Data: d})
 	return
 }
