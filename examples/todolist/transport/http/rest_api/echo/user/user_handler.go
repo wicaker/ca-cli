@@ -77,5 +77,5 @@ func (uh *UserHandler) Login(c echo.Context) error {
 		return c.JSON(domain.GetStatusCode(err), domain.ResponseError{Message: err.Error()})
 	}
 
-	return c.JSON(http.StatusCreated, domain.ResponseSuccess{Message: "Login successfully", Data: d})
+	return c.JSON(http.StatusOK, domain.ResponseSuccess{Message: "Login successfully", Data: d})
 }

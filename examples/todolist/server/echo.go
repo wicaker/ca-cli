@@ -4,28 +4,38 @@ import (
 	"time"
 	"todolist/middleware"
 
-	_userGopgRepo "todolist/repository/go_pg/user"
+	_userSqlxRepo "todolist/repository/sqlx/user"
 	_userHandler "todolist/transport/http/rest_api/echo/user"
 	_userUseCase "todolist/usecase/user"
 
-	"github.com/go-pg/pg/v9"
+	_taskSqlxRepo "todolist/repository/sqlx/task"
+	_taskHandler "todolist/transport/http/rest_api/echo/task"
+	_taskUseCase "todolist/usecase/task"
+
+	// "github.com/go-pg/pg/v9"
+	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo"
+	"github.com/spf13/viper"
 )
 
 // Echo server
 func Echo(db interface{}) *echo.Echo {
-	database := db.(*pg.DB)
+	database := db.(*sqlx.DB)
 
 	e := echo.New()
 	middL := middleware.InitEchoMiddleware()
 	e.Use(middL.MiddlewareLogging)
 	e.Use(middL.CORS)
 
-	timeoutContext := time.Duration(60) * time.Millisecond
+	timeoutContext := time.Duration(viper.GetInt("context.timeout")) * time.Second
 
-	userRepo := _userGopgRepo.NewUserGopgRepository(database)
+	userRepo := _userSqlxRepo.NewUserSqlxRepository(database)
 	userUcase := _userUseCase.NewUserUsecase(userRepo, timeoutContext)
 	_userHandler.NewUserHandler(e, userUcase)
+
+	taskRepo := _taskSqlxRepo.NewTaskSqlxRepository(database)
+	taskUcase := _taskUseCase.NewTaskUsecase(taskRepo, userRepo, timeoutContext)
+	_taskHandler.NewTaskHandler(e, taskUcase)
 
 	return e
 }
