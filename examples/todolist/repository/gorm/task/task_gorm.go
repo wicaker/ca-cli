@@ -18,7 +18,7 @@ func NewTaskGormRepository(DB *gorm.DB) domain.TaskRepository {
 
 func (db *taskGormRepository) Fetch(ctx context.Context, userID uint64) ([]*domain.Task, error) {
 	var tasks []*domain.Task
-	err := db.DB.Where("UserID = ?", userID).Find(&tasks).Error
+	err := db.DB.Where("user_id = ?", userID).Find(&tasks).Error
 	if err != nil {
 		return nil, err
 	}
@@ -30,14 +30,21 @@ func (db *taskGormRepository) GetByID(ctx context.Context, id uint64) (*domain.T
 
 	err := db.DB.First(&task, id).Error
 	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
 		return nil, err
 	}
 
 	return &task, nil
 }
 
-func (db *taskGormRepository) Store(ctx context.Context, t *domain.Task) error {
-	return db.DB.Create(t).Error
+func (db *taskGormRepository) Store(ctx context.Context, t *domain.Task) (*domain.Task, error) {
+	err := db.DB.Create(t).Error
+	if err != nil {
+		return nil, err
+	}
+	return t, err
 }
 
 func (db *taskGormRepository) Update(ctx context.Context, t *domain.Task) error {
