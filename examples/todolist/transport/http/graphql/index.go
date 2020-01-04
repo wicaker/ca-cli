@@ -1,6 +1,7 @@
 package graphqlhandler
 
 import (
+	"context"
 	"net/http"
 
 	"todolist/domain"
@@ -16,12 +17,14 @@ import (
 // graphQLHandler represent the graphQLHandler
 type graphQLHandler struct {
 	UserUsecase domain.UserUsecase
+	TaskUsecase domain.TaskUsecase
 }
 
 // NewGraphQLHandler will initialize the graphql endpoint
-func NewGraphQLHandler(r *http.ServeMux, u domain.UserUsecase) {
+func NewGraphQLHandler(r *http.ServeMux, u domain.UserUsecase, t domain.TaskUsecase) {
 	handle := &graphQLHandler{
 		UserUsecase: u,
+		TaskUsecase: t,
 	}
 
 	h := handler.New(&handler.Config{
@@ -30,12 +33,12 @@ func NewGraphQLHandler(r *http.ServeMux, u domain.UserUsecase) {
 		GraphiQL: false,
 	})
 
-	r.Handle("/graphql", h)
+	r.Handle("/graphql", httpHeaderMiddleware(h))
 }
 
 func (gh *graphQLHandler) schema() *graphql.Schema {
-	rootMutation := mutations.NewGraphQLMutation(gh.UserUsecase)
-	rootQuery := queries.NewGraphQLQuery(gh.UserUsecase)
+	rootMutation := mutations.NewGraphQLMutation(gh.UserUsecase, gh.TaskUsecase)
+	rootQuery := queries.NewGraphQLQuery(gh.UserUsecase, gh.TaskUsecase)
 
 	var queryType = graphql.NewObject(
 		graphql.ObjectConfig{
@@ -58,4 +61,12 @@ func (gh *graphQLHandler) schema() *graphql.Schema {
 		log.Printf("errors: %v", err.Error())
 	}
 	return &schema
+}
+
+func httpHeaderMiddleware(next *handler.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := context.WithValue(r.Context(), "token", r.Header.Get("x-access-token"))
+
+		next.ContextHandler(ctx, w, r)
+	})
 }
