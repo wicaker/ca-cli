@@ -46,5 +46,20 @@ func (guh *GrpcUserHandler) Register(ctx context.Context, req *pb.RegisterReq) (
 
 // Login will handle login request
 func (guh *GrpcUserHandler) Login(ctx context.Context, req *pb.LoginReq) (*pb.LoginResp, error) {
-	return nil, nil
+	data := domain.User{
+		Email:    req.GetEmail(),
+		Username: req.GetUsername(),
+		Password: req.GetPassword(),
+	}
+
+	if ok, err := middleware.IsRequestValid(&data); !ok {
+		return nil, err
+	}
+
+	token, err := guh.UserUsecase.Login(ctx, &data)
+	if err != nil {
+		return nil, err
+	}
+
+	return &pb.LoginResp{Token: token}, nil
 }

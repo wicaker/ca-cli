@@ -2,11 +2,16 @@ package server
 
 import (
 	"time"
-	_userGopgRepo "todolist/repository/go_pg/user"
+	_userGopgRepo "todolist/repository/gopg/user"
 	_userHandler "todolist/transport/http2/grpc/user"
 	_userUseCase "todolist/usecase/user"
 
+	_taskGopgRepo "todolist/repository/gopg/task"
+	_taskHandler "todolist/transport/http2/grpc/task"
+	_taskUseCase "todolist/usecase/task"
+
 	"github.com/go-pg/pg/v9"
+	"github.com/spf13/viper"
 	"google.golang.org/grpc"
 )
 
@@ -20,11 +25,15 @@ func GRPCServer(db interface{}) *grpc.Server {
 
 	s := grpc.NewServer(opts...)
 
-	timeoutContext := time.Duration(100) * time.Millisecond
+	timeoutContext := time.Duration(viper.GetInt("context.timeout")) * time.Second
 
 	userRepo := _userGopgRepo.NewUserGopgRepository(database)
 	userUcase := _userUseCase.NewUserUsecase(userRepo, timeoutContext)
 	_userHandler.NewGrpcUserHandler(s, userUcase)
+
+	taskRepo := _taskGopgRepo.NewTaskGopgRepository(database)
+	taskUcase := _taskUseCase.NewTaskUsecase(taskRepo, userRepo, timeoutContext)
+	_taskHandler.NewGrpcTaskHandler(s, taskUcase)
 
 	return s
 }
