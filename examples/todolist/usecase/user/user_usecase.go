@@ -13,7 +13,6 @@ import (
 )
 
 type userUsecase struct {
-	x              chan error
 	userRepo       domain.UserRepository
 	contextTimeout time.Duration
 }
