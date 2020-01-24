@@ -4,6 +4,7 @@ go 1.13
 
 require (
 	github.com/dave/jennifer v1.4.0
+	github.com/davecgh/go-spew v1.1.1
 	github.com/go-playground/universal-translator v0.17.0 // indirect
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
 	github.com/gordonklaus/ineffassign v0.0.0-20190601041439-ed7b1b5ee0f8 // indirect

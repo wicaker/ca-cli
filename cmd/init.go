@@ -10,6 +10,7 @@ import (
 	"github.com/wicaker/cacli/domain"
 	"github.com/wicaker/cacli/fs"
 	"github.com/wicaker/cacli/generator"
+	"github.com/wicaker/cacli/parser"
 
 	"github.com/manifoldco/promptui"
 	log "github.com/sirupsen/logrus"
@@ -156,8 +157,44 @@ var initCmd = &cobra.Command{
 				os.Exit(1)
 			}
 
+			// generate success file inside domain
+			err = newGen.GenDomainSuccess(args[0])
+			if err != nil {
+				log.Error(err)
+				os.Exit(1)
+			}
+
+			// generate example file inside domain
+			err = newGen.GenDomainExample(args[0])
+			if err != nil {
+				log.Error(err)
+				os.Exit(1)
+			}
+
+			// create usecase directory
+			err = newFs.CreateDir("./" + args[0] + "/usecase")
+			if err != nil {
+				log.Error(err)
+				os.Exit(1)
+			}
+
+			// parse file in domain dir
+			p := parser.NewParserService("example")
+			par, err := p.Parser("./" + args[0] + "/domain/example.go")
+			if err != nil {
+				log.Error(err)
+				os.Exit(1)
+			}
+
+			// create example usecase based on interface in domain layer
+			err = newGen.GenUsecase(args[0], "example", goModName, par)
+			if err != nil {
+				log.Error(err)
+				os.Exit(1)
+			}
+
 		}
-		fmt.Println(res, args, goModName, dbHelper, transport)
+		fmt.Println(dbHelper, transport)
 	},
 }
 
@@ -196,7 +233,7 @@ func selectInit(items []domain.Option, label string) (string, error) {
 	}
 	selected := fmt.Sprintf(`{{ "✔" | green | bold }} {{ "%s" | bold }}: {{ .Title | cyan }}`, label)
 	templates := promptui.SelectTemplates{
-		Active:   `🍕 {{ .Title | cyan | bold }}`,
+		Active:   `🚩 {{ .Title | cyan | bold }}`,
 		Inactive: `   {{ .Title | cyan }}`,
 		Selected: selected,
 		Details: `

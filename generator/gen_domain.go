@@ -57,3 +57,56 @@ func (gen *caGen) GenDomainStatusCode(dirName string) error {
 	}
 	return nil
 }
+
+func (gen *caGen) GenDomainSuccess(dirName string) error {
+	f := jen.NewFile("domain")
+	f.Comment("ResponseSuccess represent the reseponse success struct")
+	f.Type().Id("ResponseSuccess").Struct(
+		jen.Id("Message").String().Tag(map[string]string{"json": "message"}),
+		jen.Id("Data").Interface().Tag(map[string]string{"json": "data"}),
+	)
+
+	err := f.Save(dirName + "/domain/success.go")
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (gen *caGen) GenDomainExample(dirName string) error {
+	f := jen.NewFile("domain")
+	f.Comment("Example struct, models of example table")
+	f.Type().Id("Example").Struct(
+		jen.Id("ID").Uint64().Tag(map[string]string{"json": "id"}),
+		jen.Id("Name").String().Tag(map[string]string{"json": "name"}),
+		jen.Id("CreatedAt").Qual("time", "Time").Tag(map[string]string{"json": "created_at", "db": "created_at"}),
+		jen.Id("UpdatedAt").Qual("time", "Time").Tag(map[string]string{"json": "updated_at", "db": "updated_at"}),
+		jen.Id("DeletedAt").Op("*").Qual("time", "Time").Tag(map[string]string{"json": "deleted_at", "db": "deleted_at", "pg": ",soft_delete"}),
+	)
+
+	f.Comment("ExampleUsecase represent the Example's usecases contract")
+	f.Type().Id("ExampleUsecase").Interface(
+		jen.Id("Fetch").Params(jen.Id("ctx").Qual("context", "Context")).Call(jen.Index().Op("*").Id("Example"), jen.Error()),
+		jen.Id("GetByID").Params(jen.Id("ctx").Qual("context", "Context"), jen.Id("id").Uint64()).Call(jen.Op("*").Id("Test"), jen.Error()),
+		jen.Id("Store").Params(jen.Id("ctx").Qual("context", "Context"), jen.Id("exp").Op("*").Id("Example")).Call(jen.Op("*").Id("Example"), jen.Error()),
+		jen.Id("Update").Params(jen.Id("ctx").Qual("context", "Context"), jen.Id("exp").Op("*").Id("Example")).Call(jen.Op("*").Id("Example"), jen.Error()),
+		jen.Id("Delete").Params(jen.Id("ctx").Qual("context", "Context"), jen.Id("id").Uint64()).Call(jen.Error()),
+	)
+
+	f.Comment("ExampleRepository represent the Example's repository contract")
+	f.Type().Id("ExampleRepository").Interface(
+		jen.Id("Fetch").Params(jen.Id("ctx").Qual("context", "Context")).Call(jen.Index().Op("*").Id("Example"), jen.Error()),
+		jen.Id("GetByID").Params(jen.Id("ctx").Qual("context", "Context"), jen.Id("id").Uint64()).Call(jen.Op("*").Id("Example"), jen.Error()),
+		jen.Id("Store").Params(jen.Id("ctx").Qual("context", "Context"), jen.Id("exp").Op("*").Id("Example")).Call(jen.Op("*").Id("Example"), jen.Error()),
+		jen.Id("Update").Params(jen.Id("ctx").Qual("context", "Context"), jen.Id("exp").Op("*").Id("Example")).Call(jen.Op("*").Id("Example"), jen.Error()),
+		jen.Id("Delete").Params(jen.Id("ctx").Qual("context", "Context"), jen.Id("id").Uint64()).Call(jen.Error()),
+	)
+
+	err := f.Save(dirName + "/domain/example.go")
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
