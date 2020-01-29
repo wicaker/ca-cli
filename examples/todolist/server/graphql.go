@@ -32,7 +32,7 @@ func GraphQLServer(db interface{}) http.Handler {
 	userRepo := _userGopgRepo.NewUserGopgRepository(database)
 	userUcase := _userUseCase.NewUserUsecase(userRepo, timeoutContext)
 
-	taskRepo := _taskGopgRepo.NewTaskGopgRepository(database)
+	taskRepo := _taskGopgRepo.NewGopgTaskRepository(database)
 	taskUcase := _taskUseCase.NewTaskUsecase(taskRepo, userRepo, timeoutContext)
 
 	_graphqlHandler.NewGraphQLHandler(r, userUcase, taskUcase)

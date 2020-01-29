@@ -31,7 +31,7 @@ func GRPCServer(db interface{}) *grpc.Server {
 	userUcase := _userUseCase.NewUserUsecase(userRepo, timeoutContext)
 	_userHandler.NewGrpcUserHandler(s, userUcase)
 
-	taskRepo := _taskGopgRepo.NewTaskGopgRepository(database)
+	taskRepo := _taskGopgRepo.NewGopgTaskRepository(database)
 	taskUcase := _taskUseCase.NewTaskUsecase(taskRepo, userRepo, timeoutContext)
 	_taskHandler.NewGrpcTaskHandler(s, taskUcase)
 

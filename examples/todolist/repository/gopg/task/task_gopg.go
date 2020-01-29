@@ -9,16 +9,16 @@ import (
 	"github.com/go-pg/pg/v9"
 )
 
-type taskGopgRepository struct {
+type gopgTaskRepository struct {
 	DB *pg.DB
 }
 
-// NewTaskGopgRepository will create new an taskGopgRepository object representation of domain.TaskRepository interface
-func NewTaskGopgRepository(DB *pg.DB) domain.TaskRepository {
-	return &taskGopgRepository{DB}
+// NewGopgTaskRepository will create new an gopgTaskRepository object representation of domain.TaskRepository interface
+func NewGopgTaskRepository(DB *pg.DB) domain.TaskRepository {
+	return &gopgTaskRepository{DB}
 }
 
-func (db *taskGopgRepository) Fetch(ctx context.Context, userID uint64) ([]*domain.Task, error) {
+func (db *gopgTaskRepository) Fetch(ctx context.Context, userID uint64) ([]*domain.Task, error) {
 	var tasks []*domain.Task
 
 	err := db.DB.ModelContext(ctx, &tasks).Where("user_id = ?", userID).Select()
@@ -29,7 +29,7 @@ func (db *taskGopgRepository) Fetch(ctx context.Context, userID uint64) ([]*doma
 	return tasks, nil
 }
 
-func (db *taskGopgRepository) GetByID(ctx context.Context, id uint64) (*domain.Task, error) {
+func (db *gopgTaskRepository) GetByID(ctx context.Context, id uint64) (*domain.Task, error) {
 	task := &domain.Task{ID: id}
 
 	err := db.DB.WithContext(ctx).Select(task)
@@ -44,13 +44,13 @@ func (db *taskGopgRepository) GetByID(ctx context.Context, id uint64) (*domain.T
 	return task, nil
 }
 
-func (db *taskGopgRepository) Store(ctx context.Context, task *domain.Task) (*domain.Task, error) {
+func (db *gopgTaskRepository) Store(ctx context.Context, task *domain.Task) (*domain.Task, error) {
 	task.CreatedAt = time.Now()
 	task.UpdatedAt = time.Now()
 	return task, db.DB.WithContext(ctx).Insert(task)
 }
 
-func (db *taskGopgRepository) Update(ctx context.Context, task *domain.Task) error {
+func (db *gopgTaskRepository) Update(ctx context.Context, task *domain.Task) error {
 	task.UpdatedAt = time.Now()
 	if task.ID == uint64(0) {
 		return errors.New("Task ID required")
@@ -64,7 +64,7 @@ func (db *taskGopgRepository) Update(ctx context.Context, task *domain.Task) err
 	return db.DB.WithContext(ctx).Update(task)
 }
 
-func (db *taskGopgRepository) Delete(ctx context.Context, id uint64) error {
+func (db *gopgTaskRepository) Delete(ctx context.Context, id uint64) error {
 	task := domain.Task{ID: id}
 	return db.DB.WithContext(ctx).Delete(&task)
 }

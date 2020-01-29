@@ -38,7 +38,7 @@ func Gin(db interface{}) *gin.Engine {
 	userUcase := _userUseCase.NewUserUsecase(userRepo, timeoutContext)
 	_userHandler.NewUserHandler(r, userUcase)
 
-	taskRepo := _taskGopgRepo.NewTaskGopgRepository(database)
+	taskRepo := _taskGopgRepo.NewGopgTaskRepository(database)
 	taskUcase := _taskUseCase.NewTaskUsecase(taskRepo, userRepo, timeoutContext)
 	_taskHandler.NewTaskHandler(r, taskUcase)
 
