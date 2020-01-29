@@ -72,31 +72,6 @@ func (gen *caGen) GenUsecase(dirName string, domainName string, gomodName string
 		)
 	}
 
-	// f.Func().
-	// 	Params(jen.Id(string(domainName[0])+"u").Op("*").Id(domainName+"Usecase")).
-	// 	Id("Fetch").Params(jen.Id("ctx").Qual("context", "Context")).Call(jen.Index().Op("*").Id("Example"), jen.Error()).Block(
-	// 	jen.List(jen.Id("ctx"), jen.Id("cancel")).Op(":=").Qual("context", "WithTimeout").Call(jen.Id("ctx"), jen.Qual(string(domainName[0])+"u", "contextTimeout")),
-	// 	jen.Id("defer").Id("cancel").Call(),
-	// )
-	// func (tu *taskUsecase) Fetch(ctx context.Context, userID uint64) ([]*domain.Task, error) {
-	// 	ctx, cancel := context.WithTimeout(ctx, tu.contextTimeout)
-	// 	defer cancel()
-
-	// 	user, err := tu.userRepo.GetByID(ctx, userID)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// 	if user == nil {
-	// 		return nil, domain.ErrNotFound
-	// 	}
-
-	// 	tasks, err := tu.taskRepo.Fetch(ctx, user.ID)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// 	return tasks, nil
-	// }
-
 	fileDir := fmt.Sprintf("%s/usecase/%s_usecase.go", dirName, domainName)
 	err := f.Save(fileDir)
 	if err != nil {

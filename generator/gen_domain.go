@@ -88,7 +88,7 @@ func (gen *caGen) GenDomainExample(dirName string) error {
 	f.Comment("ExampleUsecase represent the Example's usecases contract")
 	f.Type().Id("ExampleUsecase").Interface(
 		jen.Id("Fetch").Params(jen.Id("ctx").Qual("context", "Context")).Call(jen.Index().Op("*").Id("Example"), jen.Error()),
-		jen.Id("GetByID").Params(jen.Id("ctx").Qual("context", "Context"), jen.Id("id").Uint64()).Call(jen.Op("*").Id("Test"), jen.Error()),
+		jen.Id("GetByID").Params(jen.Id("ctx").Qual("context", "Context"), jen.Id("id").Uint64()).Call(jen.Op("*").Id("Example"), jen.Error()),
 		jen.Id("Store").Params(jen.Id("ctx").Qual("context", "Context"), jen.Id("exp").Op("*").Id("Example")).Call(jen.Op("*").Id("Example"), jen.Error()),
 		jen.Id("Update").Params(jen.Id("ctx").Qual("context", "Context"), jen.Id("exp").Op("*").Id("Example")).Call(jen.Op("*").Id("Example"), jen.Error()),
 		jen.Id("Delete").Params(jen.Id("ctx").Qual("context", "Context"), jen.Id("id").Uint64()).Call(jen.Error()),

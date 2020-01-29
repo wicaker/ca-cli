@@ -15,7 +15,6 @@ import (
 	"github.com/manifoldco/promptui"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"github.com/thoas/go-funk"
 )
 
 // initCmd represents the new command
@@ -25,22 +24,29 @@ var initCmd = &cobra.Command{
 	Short:   "Initiate first clean architecture code",
 	Run: func(cmd *cobra.Command, args []string) {
 		var (
-			goModName, dbHelper string
-			selectDBOpt         = []domain.Option{
-				domain.Option{Title: domain.GoPg, Description: "https://github.com/go-pg/pg"},
-				domain.Option{Title: domain.Gorm, Description: "https://github.com/jinzhu/gorm"},
-				domain.Option{Title: domain.Sqlx, Description: "https://github.com/jmoiron/sqlx"},
-				domain.Option{Title: domain.SQL, Description: "https://golang.org/pkg/database/sql/"},
+			goModName, dbHelper, restServer, graphqlOpt, grpcOpt string
+			selectDBOpt                                          = []domain.Option{
+				domain.Option{Title: domain.GoPg, Description: "Will using package from https://github.com/go-pg/pg"},
+				domain.Option{Title: domain.Gorm, Description: "Will using package from https://github.com/jinzhu/gorm"},
+				domain.Option{Title: domain.Sqlx, Description: "Will using package from https://github.com/jmoiron/sqlx"},
+				domain.Option{Title: domain.SQL, Description: "Will using package from https://golang.org/pkg/database/sql/"},
 			}
-			selectTransportOpt = []domain.Option{
-				domain.Option{Title: domain.Echo, Description: "https://github.com/labstack/echo"},
-				domain.Option{Title: domain.Gin, Description: "https://github.com/gin-gonic/gin"},
-				domain.Option{Title: domain.GorillaMux, Description: "https://github.com/gorilla/mux"},
-				domain.Option{Title: domain.NetHTTP, Description: "https://golang.org/pkg/net/http/"},
-				domain.Option{Title: domain.Graphql, Description: "github.com/graphql-go/graphql"},
-				domain.Option{Title: domain.Grpc, Description: "google.golang.org/grpc"},
+			selectRestServerOpt = []domain.Option{
+				domain.Option{Title: domain.Echo, Description: "Will using package from https://github.com/labstack/echo"},
+				domain.Option{Title: domain.Gin, Description: "Will using package from https://github.com/gin-gonic/gin"},
+				domain.Option{Title: domain.GorillaMux, Description: "Will using package from https://github.com/gorilla/mux"},
+				domain.Option{Title: domain.NetHTTP, Description: "Will using package from https://golang.org/pkg/net/http/"},
+				domain.Option{Title: "no", Description: "REST API transport will not added"},
 			}
-			isAgain        string = "yes"
+			selectGraphqlOpt = []domain.Option{
+				domain.Option{Title: "yes", Description: "Will using package from github.com/graphql-go/graphql"},
+				domain.Option{Title: "no", Description: "Graphql transport will not added"},
+			}
+			selectGrpcOpt = []domain.Option{
+				domain.Option{Title: "yes", Description: "This transport wil using package from google.golang.org/grpc"},
+				domain.Option{Title: "no", Description: "Grpc transport will not added"},
+			}
+			// isAgain        string = "yes"
 			transport      []string
 			stdout, stderr bytes.Buffer
 		)
@@ -69,34 +75,24 @@ var initCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		// input transport used
-		numTransport := 1
-		for isAgain == "yes" || isAgain == "y" && len(selectTransportOpt) != 0 {
-			// give transport option to user
-			label := fmt.Sprintf("Transport %d", numTransport)
-			t, err := selectInit(selectTransportOpt, label)
-			if err != nil {
-				log.Error(err)
-				os.Exit(1)
-			}
+		// input http rest api server transport
+		restServer, err = selectInit(selectRestServerOpt, "Using REST API? , choose if yes!")
+		if err != nil {
+			log.Error(err)
+			os.Exit(1)
+		}
+		// input graphql transport
+		graphqlOpt, err = selectInit(selectGraphqlOpt, "Using Graphql ?")
+		if err != nil {
+			log.Error(err)
+			os.Exit(1)
+		}
 
-			// append new transport and remove option which already used
-			transport = append(transport, t)
-			r := funk.Filter(selectTransportOpt, func(x domain.Option) bool {
-				return x.Title != t
-			})
-			selectTransportOpt = r.([]domain.Option)
-
-			// ask if user want add another transport method
-			if len(selectTransportOpt) > 0 {
-				isAgain, err = promptInit("Add new transport ? (yes/y)")
-				if err != nil {
-					log.Error(err)
-					os.Exit(1)
-				}
-			}
-
-			numTransport++
+		// input htt2 gRPC transport
+		grpcOpt, err = selectInit(selectGrpcOpt, "Using gRPC ?")
+		if err != nil {
+			log.Error(err)
+			os.Exit(1)
 		}
 
 		// fs service
@@ -191,6 +187,154 @@ var initCmd = &cobra.Command{
 			if err != nil {
 				log.Error(err)
 				os.Exit(1)
+			}
+
+			// create repository directory
+			err = newFs.CreateDir("./" + args[0] + "/repository")
+			if err != nil {
+				log.Error(err)
+				os.Exit(1)
+			}
+
+			// create repository layer
+			if dbHelper == domain.GoPg {
+				err = newGen.GenGopgRepository(args[0], "example", goModName, par)
+				if err != nil {
+					log.Error(err)
+					os.Exit(1)
+				}
+			} else if dbHelper == domain.Gorm {
+				err = newGen.GenGormRepository(args[0], "example", goModName, par)
+				if err != nil {
+					log.Error(err)
+					os.Exit(1)
+				}
+			} else if dbHelper == domain.Sqlx {
+				err = newGen.GenSqlxRepository(args[0], "example", goModName, par)
+				if err != nil {
+					log.Error(err)
+					os.Exit(1)
+				}
+			} else if dbHelper == domain.SQL {
+				err = newGen.GenSQLRepository(args[0], "example", goModName, par)
+				if err != nil {
+					log.Error(err)
+					os.Exit(1)
+				}
+			}
+
+			// create database directory
+			err = newFs.CreateDir("./" + args[0] + "/database")
+			if err != nil {
+				log.Error(err)
+				os.Exit(1)
+			}
+
+			// create config directory
+			err = newFs.CreateDir("./" + args[0] + "/database/config")
+			if err != nil {
+				log.Error(err)
+				os.Exit(1)
+			}
+
+			// create db config
+			if dbHelper == domain.GoPg {
+				err = newGen.GenGopgConfig(args[0], "example", goModName, par)
+				if err != nil {
+					log.Error(err)
+					os.Exit(1)
+				}
+			} else if dbHelper == domain.Gorm {
+				err = newGen.GenGormConfig(args[0], "example", goModName, par)
+				if err != nil {
+					log.Error(err)
+					os.Exit(1)
+				}
+			} else if dbHelper == domain.Sqlx {
+				err = newGen.GenSqlxConfig(args[0], "example", goModName, par)
+				if err != nil {
+					log.Error(err)
+					os.Exit(1)
+				}
+			} else if dbHelper == domain.SQL {
+				err = newGen.GenSQLConfig(args[0], "example", goModName, par)
+				if err != nil {
+					log.Error(err)
+					os.Exit(1)
+				}
+			}
+
+			// create transport directory
+			err = newFs.CreateDir("./" + args[0] + "/transport")
+			if err != nil {
+				log.Error(err)
+				os.Exit(1)
+			}
+
+			// create rest directory
+			if restServer != "no" {
+				err = newFs.CreateDir("./" + args[0] + "/transport/rest")
+				if err != nil {
+					log.Error(err)
+					os.Exit(1)
+				}
+			}
+
+			// generate transport rest api
+			if restServer == domain.Echo {
+				err = newGen.GenEchoTransport(args[0], "example", goModName, par)
+				if err != nil {
+					log.Error(err)
+					os.Exit(1)
+				}
+			} else if restServer == domain.Gin {
+				err = newGen.GenEchoTransport(args[0], "example", goModName, par)
+				if err != nil {
+					log.Error(err)
+					os.Exit(1)
+				}
+			} else if restServer == domain.GorillaMux {
+				err = newGen.GenGorillaMuxTransport(args[0], "example", goModName, par)
+				if err != nil {
+					log.Error(err)
+					os.Exit(1)
+				}
+			} else if restServer == domain.NetHTTP {
+				err = newGen.GenNetHTTPTransport(args[0], "example", goModName, par)
+				if err != nil {
+					log.Error(err)
+					os.Exit(1)
+				}
+			}
+
+			// generate tranport graphql
+			if graphqlOpt == "yes" || graphqlOpt == "y" {
+				err = newFs.CreateDir("./" + args[0] + "/transport/graphql")
+				if err != nil {
+					log.Error(err)
+					os.Exit(1)
+				}
+
+				err = newGen.GenGraphqlTransport(args[0], "example", goModName, par)
+				if err != nil {
+					log.Error(err)
+					os.Exit(1)
+				}
+			}
+
+			// generate tranport grpc
+			if grpcOpt == "yes" || grpcOpt == "y" {
+				err = newFs.CreateDir("./" + args[0] + "/transport/grpc")
+				if err != nil {
+					log.Error(err)
+					os.Exit(1)
+				}
+
+				err = newGen.GenGrpcTransport(args[0], "example", goModName, par)
+				if err != nil {
+					log.Error(err)
+					os.Exit(1)
+				}
 			}
 
 		}
