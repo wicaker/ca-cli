@@ -25,4 +25,15 @@ type GeneratorService interface {
 	GenNetHTTPTransport(dirName string, domainName string, gomodName string, parser *Parser) error
 	GenGraphqlTransport(dirName string, domainName string, gomodName string, parser *Parser) error
 	GenGrpcTransport(dirName string, domainName string, gomodName string, parser *Parser) error
+	GenEchoServer(dirName string, domainName string, gomodName string, parser *Parser) error
+	GenGinServer(dirName string, domainName string, gomodName string, parser *Parser) error
+	GenGorillaMuxServer(dirName string, domainName string, gomodName string, parser *Parser) error
+	GenNetHTTPServer(dirName string, domainName string, gomodName string, parser *Parser) error
+	GenGraphqlServer(dirName string, domainName string, gomodName string, parser *Parser) error
+	GenGrpcServer(dirName string, domainName string, gomodName string, parser *Parser) error
+	GenEchoMiddleware(dirName string, domainName string, gomodName string, parser *Parser) error
+	GenGinMiddleware(dirName string, domainName string, gomodName string, parser *Parser) error
+	GenGorillaMuxMiddleware(dirName string, domainName string, gomodName string, parser *Parser) error
+	GenNetHTTPMiddleware(dirName string, domainName string, gomodName string, parser *Parser) error
+	GenMain(dirName string, domainName string, gomodName string, parser *Parser) error
 }

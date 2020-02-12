@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/exec"
 
@@ -271,6 +272,20 @@ var initCmd = &cobra.Command{
 				os.Exit(1)
 			}
 
+			// create middleware directory
+			err = newFs.CreateDir("./" + args[0] + "/middleware")
+			if err != nil {
+				log.Error(err)
+				os.Exit(1)
+			}
+
+			// create server directory
+			err = newFs.CreateDir("./" + args[0] + "/server")
+			if err != nil {
+				log.Error(err)
+				os.Exit(1)
+			}
+
 			// create rest directory
 			if restServer != "no" {
 				err = newFs.CreateDir("./" + args[0] + "/transport/rest")
@@ -287,8 +302,26 @@ var initCmd = &cobra.Command{
 					log.Error(err)
 					os.Exit(1)
 				}
+
+				err = newGen.GenEchoMiddleware(args[0], "example", goModName, par)
+				if err != nil {
+					log.Error(err)
+					os.Exit(1)
+				}
+
+				err = newGen.GenEchoServer(args[0], "example", goModName, par)
+				if err != nil {
+					log.Error(err)
+					os.Exit(1)
+				}
 			} else if restServer == domain.Gin {
-				err = newGen.GenEchoTransport(args[0], "example", goModName, par)
+				err = newGen.GenGinTransport(args[0], "example", goModName, par)
+				if err != nil {
+					log.Error(err)
+					os.Exit(1)
+				}
+
+				err = newGen.GenGinServer(args[0], "example", goModName, par)
 				if err != nil {
 					log.Error(err)
 					os.Exit(1)
@@ -299,8 +332,20 @@ var initCmd = &cobra.Command{
 					log.Error(err)
 					os.Exit(1)
 				}
+
+				err = newGen.GenGorillaMuxServer(args[0], "example", goModName, par)
+				if err != nil {
+					log.Error(err)
+					os.Exit(1)
+				}
 			} else if restServer == domain.NetHTTP {
 				err = newGen.GenNetHTTPTransport(args[0], "example", goModName, par)
+				if err != nil {
+					log.Error(err)
+					os.Exit(1)
+				}
+
+				err = newGen.GenNetHTTPServer(args[0], "example", goModName, par)
 				if err != nil {
 					log.Error(err)
 					os.Exit(1)
@@ -320,6 +365,12 @@ var initCmd = &cobra.Command{
 					log.Error(err)
 					os.Exit(1)
 				}
+
+				err = newGen.GenGraphqlServer(args[0], "example", goModName, par)
+				if err != nil {
+					log.Error(err)
+					os.Exit(1)
+				}
 			}
 
 			// generate tranport grpc
@@ -335,6 +386,60 @@ var initCmd = &cobra.Command{
 					log.Error(err)
 					os.Exit(1)
 				}
+
+				err = newGen.GenGrpcServer(args[0], "example", goModName, par)
+				if err != nil {
+					log.Error(err)
+					os.Exit(1)
+				}
+			}
+
+			// generate main
+			err = newGen.GenMain(args[0], "example", goModName, par)
+			if err != nil {
+				log.Error(err)
+				os.Exit(1)
+			}
+
+			// generate config.json
+			configJSON := []byte(`{
+	"debug": true,
+	"server": {
+		"echo": {
+			"address":":9090"
+		},
+		"gin": {
+			"address":":8090"
+		},
+		"gorilla-mux": {
+			"address":":7090"
+		},
+		"net-http-server-mux": {
+			"address":":6090"
+		},
+		"graphql-server-mux": {
+			"address":":5090"
+		},
+		"grpc": {
+			"address":":50051"
+		}
+	},
+	"context":{
+		"timeout":2
+	}
+}`)
+			err = ioutil.WriteFile("./"+args[0]+"/config.json", configJSON, 0644)
+			if err != nil {
+				log.Error(err)
+				os.Exit(1)
+			}
+
+			// generate README.md
+			readme := []byte(`README.md`)
+			err = ioutil.WriteFile("./"+args[0]+"/README.md", readme, 0644)
+			if err != nil {
+				log.Error(err)
+				os.Exit(1)
 			}
 
 		}

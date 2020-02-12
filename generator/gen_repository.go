@@ -70,7 +70,7 @@ func (gen *caGen) GenGopgRepository(dirName string, domainName string, gomodName
 		)
 	}
 
-	fileDir := fmt.Sprintf("%s/repository/%s_gopg.go", dirName, domainName)
+	fileDir := fmt.Sprintf("%s/repository/%s_repository.go", dirName, domainName)
 	err := f.Save(fileDir)
 	if err != nil {
 		return err
@@ -140,7 +140,7 @@ func (gen *caGen) GenGormRepository(dirName string, domainName string, gomodName
 		)
 	}
 
-	fileDir := fmt.Sprintf("%s/repository/%s_gorm.go", dirName, domainName)
+	fileDir := fmt.Sprintf("%s/repository/%s_repository.go", dirName, domainName)
 	err := f.Save(fileDir)
 	if err != nil {
 		return err
@@ -210,7 +210,7 @@ func (gen *caGen) GenSQLRepository(dirName string, domainName string, gomodName 
 		)
 	}
 
-	fileDir := fmt.Sprintf("%s/repository/%s_sql.go", dirName, domainName)
+	fileDir := fmt.Sprintf("%s/repository/%s_repository.go", dirName, domainName)
 	err := f.Save(fileDir)
 	if err != nil {
 		return err
@@ -280,7 +280,7 @@ func (gen *caGen) GenSqlxRepository(dirName string, domainName string, gomodName
 		)
 	}
 
-	fileDir := fmt.Sprintf("%s/repository/%s_sqlx.go", dirName, domainName)
+	fileDir := fmt.Sprintf("%s/repository/%s_repository.go", dirName, domainName)
 	err := f.Save(fileDir)
 	if err != nil {
 		return err

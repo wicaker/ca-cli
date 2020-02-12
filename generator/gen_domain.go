@@ -66,6 +66,11 @@ func (gen *caGen) GenDomainSuccess(dirName string) error {
 		jen.Id("Data").Interface().Tag(map[string]string{"json": "data"}),
 	)
 
+	f.Var().Defs(
+		jen.Comment("ResponseData with type map used to response json if no error"),
+		jen.Id("ResponseData").Map(jen.String()).Interface(),
+	)
+
 	err := f.Save(dirName + "/domain/success.go")
 	if err != nil {
 		return err

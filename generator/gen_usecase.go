@@ -66,7 +66,7 @@ func (gen *caGen) GenUsecase(dirName string, domainName string, gomodName string
 		f.Func().
 			Params(jen.Id(string(domainName[0])+"u").Op("*").Id(domainName+"Usecase")).
 			Id(i.Name).Params(param[:]...).Call(result[:]...).Block(
-			jen.List(jen.Id("ctx"), jen.Id("cancel")).Op(":=").Qual("context", "WithTimeout").Call(jen.Id("ctx"), jen.Qual(string(domainName[0])+"u", "contextTimeout")),
+			jen.List(jen.Id("ctx"), jen.Id("cancel")).Op(":=").Qual("context", "WithTimeout").Call(jen.Id("ctx"), jen.Id(string(domainName[0])+"u").Dot("contextTimeout")),
 			jen.Id("defer").Id("cancel").Call(),
 			jen.Return(returnV[:]...),
 		)
