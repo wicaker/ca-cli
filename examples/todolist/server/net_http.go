@@ -17,13 +17,10 @@ import (
 	_taskUseCase "todolist/usecase/task"
 
 	"github.com/jinzhu/gorm"
-	"github.com/spf13/viper"
 )
 
 // ServeMux server
-func ServeMux(db interface{}) http.Handler {
-	database := db.(*gorm.DB)
-
+func ServeMux(db *gorm.DB) http.Handler {
 	r := http.NewServeMux()
 	middL := middleware.InitStandarMuxMiddleware()
 	var handler http.Handler = r
@@ -31,13 +28,13 @@ func ServeMux(db interface{}) http.Handler {
 	handler = middL.CORS(handler)
 	handler = parseURL(handler)
 
-	timeoutContext := time.Duration(viper.GetInt("context.timeout")) * time.Millisecond
+	timeoutContext := time.Duration(2) * time.Millisecond
 
-	userRepo := _userGormRepo.NewUserGormRepository(database)
+	userRepo := _userGormRepo.NewUserGormRepository(db)
 	userUcase := _userUseCase.NewUserUsecase(userRepo, timeoutContext)
 	_userHandler.NewUserHandler(r, userUcase)
 
-	taskRepo := _taskGormRepo.NewTaskGormRepository(database)
+	taskRepo := _taskGormRepo.NewTaskGormRepository(db)
 	taskUcase := _taskUseCase.NewTaskUsecase(taskRepo, userRepo, timeoutContext)
 	_taskHandler.NewTaskHandler(r, taskUcase)
 

@@ -15,13 +15,10 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-pg/pg/v9"
-	"github.com/spf13/viper"
 )
 
 // Gin server
-func Gin(db interface{}) *gin.Engine {
-	database := db.(*pg.DB)
-
+func Gin(db *pg.DB) *gin.Engine {
 	if os.Getenv("GIN_MODE") == "release" {
 		gin.SetMode(gin.ReleaseMode)
 	}
@@ -32,13 +29,13 @@ func Gin(db interface{}) *gin.Engine {
 	r.Use(middL.MiddlewareLogging())
 	r.Use(gin.Recovery())
 
-	timeoutContext := time.Duration(viper.GetInt("context.timeout")) * time.Second
+	timeoutContext := time.Duration(2) * time.Second
 
-	userRepo := _userGopgRepo.NewUserGopgRepository(database)
+	userRepo := _userGopgRepo.NewUserGopgRepository(db)
 	userUcase := _userUseCase.NewUserUsecase(userRepo, timeoutContext)
 	_userHandler.NewUserHandler(r, userUcase)
 
-	taskRepo := _taskGopgRepo.NewGopgTaskRepository(database)
+	taskRepo := _taskGopgRepo.NewGopgTaskRepository(db)
 	taskUcase := _taskUseCase.NewTaskUsecase(taskRepo, userRepo, timeoutContext)
 	_taskHandler.NewTaskHandler(r, taskUcase)
 

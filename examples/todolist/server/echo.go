@@ -15,25 +15,22 @@ import (
 	// "github.com/go-pg/pg/v9"
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo"
-	"github.com/spf13/viper"
 )
 
 // Echo server
-func Echo(db interface{}) *echo.Echo {
-	database := db.(*sqlx.DB)
-
+func Echo(db *sqlx.DB) *echo.Echo {
 	e := echo.New()
 	middL := middleware.InitEchoMiddleware()
 	e.Use(middL.MiddlewareLogging)
 	e.Use(middL.CORS)
 
-	timeoutContext := time.Duration(viper.GetInt("context.timeout")) * time.Second
+	timeoutContext := time.Duration(2) * time.Second
 
-	userRepo := _userSqlxRepo.NewUserSqlxRepository(database)
+	userRepo := _userSqlxRepo.NewUserSqlxRepository(db)
 	userUcase := _userUseCase.NewUserUsecase(userRepo, timeoutContext)
 	_userHandler.NewUserHandler(e, userUcase)
 
-	taskRepo := _taskSqlxRepo.NewTaskSqlxRepository(database)
+	taskRepo := _taskSqlxRepo.NewTaskSqlxRepository(db)
 	taskUcase := _taskUseCase.NewTaskUsecase(taskRepo, userRepo, timeoutContext)
 	_taskHandler.NewTaskHandler(e, taskUcase)
 

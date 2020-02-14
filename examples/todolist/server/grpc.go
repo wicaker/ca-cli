@@ -11,27 +11,24 @@ import (
 	_taskUseCase "todolist/usecase/task"
 
 	"github.com/go-pg/pg/v9"
-	"github.com/spf13/viper"
 	"google.golang.org/grpc"
 )
 
 // GRPCServer server
-func GRPCServer(db interface{}) *grpc.Server {
-	database := db.(*pg.DB)
-
+func GRPCServer(db *pg.DB) *grpc.Server {
 	// slice of gRPC options
 	// Here we can configure things like TLS
 	opts := []grpc.ServerOption{}
 
 	s := grpc.NewServer(opts...)
 
-	timeoutContext := time.Duration(viper.GetInt("context.timeout")) * time.Second
+	timeoutContext := time.Duration(2) * time.Second
 
-	userRepo := _userGopgRepo.NewUserGopgRepository(database)
+	userRepo := _userGopgRepo.NewUserGopgRepository(db)
 	userUcase := _userUseCase.NewUserUsecase(userRepo, timeoutContext)
 	_userHandler.NewGrpcUserHandler(s, userUcase)
 
-	taskRepo := _taskGopgRepo.NewGopgTaskRepository(database)
+	taskRepo := _taskGopgRepo.NewGopgTaskRepository(db)
 	taskUcase := _taskUseCase.NewTaskUsecase(taskRepo, userRepo, timeoutContext)
 	_taskHandler.NewGrpcTaskHandler(s, taskUcase)
 

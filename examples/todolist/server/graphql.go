@@ -14,25 +14,22 @@ import (
 	_taskUseCase "todolist/usecase/task"
 
 	"github.com/go-pg/pg/v9"
-	"github.com/spf13/viper"
 )
 
 // GraphQLServer server
-func GraphQLServer(db interface{}) http.Handler {
-	database := db.(*pg.DB)
-
+func GraphQLServer(db *pg.DB) http.Handler {
 	r := http.NewServeMux()
 	middL := middleware.InitStandarMuxMiddleware()
 	var handler http.Handler = r
 	handler = middL.MiddlewareLogging(handler)
 	handler = middL.CORS(handler)
 
-	timeoutContext := time.Duration(viper.GetInt("context.timeout")) * time.Second
+	timeoutContext := time.Duration(2) * time.Second
 
-	userRepo := _userGopgRepo.NewUserGopgRepository(database)
+	userRepo := _userGopgRepo.NewUserGopgRepository(db)
 	userUcase := _userUseCase.NewUserUsecase(userRepo, timeoutContext)
 
-	taskRepo := _taskGopgRepo.NewGopgTaskRepository(database)
+	taskRepo := _taskGopgRepo.NewGopgTaskRepository(db)
 	taskUcase := _taskUseCase.NewTaskUsecase(taskRepo, userRepo, timeoutContext)
 
 	_graphqlHandler.NewGraphQLHandler(r, userUcase, taskUcase)
