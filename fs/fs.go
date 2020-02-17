@@ -37,8 +37,14 @@ func (f *caFs) CreateDir(dirName string) error {
 	return nil
 }
 
-func (f *caFs) CreateFile() error { return nil }
-func (f *caFs) RemoveDir() error  { return nil }
-func (f *caFs) RemoveFile() error { return nil }
-func (f *caFs) RenameDir() error  { return nil }
-func (f *caFs) RenameFile() error { return nil }
+func (f *caFs) CreateFile(fileName string) error { return nil }
+func (f *caFs) RemoveDir(dirName string) error {
+	err := f.fs.RemoveAll(dirName)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+func (f *caFs) RemoveFile(fileName string) error { return nil }
+func (f *caFs) RenameDir(dirName string) error   { return nil }
+func (f *caFs) RenameFile(fileName string) error { return nil }

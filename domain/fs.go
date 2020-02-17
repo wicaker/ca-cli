@@ -11,9 +11,9 @@ type FsService interface {
 	FindDir(dirName string) (interface{}, error)
 	FindFile(fileName string) error
 	CreateDir(dirName string) error
-	CreateFile() error
-	RemoveDir() error
-	RemoveFile() error
-	RenameDir() error
-	RenameFile() error
+	CreateFile(fileName string) error
+	RemoveDir(dirName string) error
+	RemoveFile(fileName string) error
+	RenameDir(dirName string) error
+	RenameFile(fileName string) error
 }

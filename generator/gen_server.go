@@ -113,7 +113,7 @@ func (gen *caGen) GenEchoServer(dirName string, domainName string, gomodName str
 		jen.Id("middl").Op(":=").Qual(gomodName+"/middleware", "InitEchoMiddleware").Call(),
 		jen.Id("e").Dot("Use").Call(jen.Id("middl").Dot("MiddlewareLogging")),
 		jen.Id("e").Dot("Use").Call(jen.Id("middl").Dot("CORS")),
-		jen.Id("timeoutContext").Op(":=").Qual("time", "Duration").Call(jen.Qual("github.com/spf13/viper", "GetInt").Call(jen.Lit("context.timeout"))).Op("*").Qual("time", "Second"),
+		jen.Id("timeoutContext").Op(":=").Qual("time", "Duration").Call(jen.Lit(2).Call(jen.Lit("context.timeout"))).Op("*").Qual("time", "Second"),
 		getRepository(dirName, gomodName)[0],
 		getUsecase(dirName, gomodName)[0],
 		getHandler(dirName+"/transport/rest", gomodName)[0],

@@ -47,9 +47,12 @@ var initCmd = &cobra.Command{
 				domain.Option{Title: "yes", Description: "This transport wil using package from google.golang.org/grpc"},
 				domain.Option{Title: "no", Description: "Grpc transport will not added"},
 			}
-			// isAgain        string = "yes"
-			transport      []string
+			overwriteDirOpt = []domain.Option{
+				domain.Option{Title: "yes", Description: "The existing directory will be overwriten"},
+				domain.Option{Title: "no", Description: "Close the app"},
+			}
 			stdout, stderr bytes.Buffer
+			dirName        string
 		)
 
 		if len(args) == 0 {
@@ -62,8 +65,38 @@ var initCmd = &cobra.Command{
 			return
 		}
 
+		// fs service
+		newFs := fs.NewFsService()
+		res, err := newFs.FindDir(args[0])
+		if err != nil {
+			log.Error(err)
+			os.Exit(1)
+		}
+
+		// overwrite already dir ?
+		if res != nil {
+			overwriteOpt, err := selectInit(overwriteDirOpt, "Directory name `"+args[0]+"` already exist, do you want to overwrite ?")
+			if err != nil {
+				log.Error(err)
+				os.Exit(1)
+			}
+			if overwriteOpt == "no" {
+				log.Error("Directory name `" + args[0] + "` already exist")
+				os.Exit(1)
+			} else {
+				dirName = args[0]
+				// remove existing directory
+				err := newFs.RemoveDir(dirName)
+				if err != nil {
+					log.Error(err)
+					os.Exit(1)
+				}
+			}
+		} else {
+			dirName = args[0]
+		}
 		// input gomod name
-		goModName, err := promptInit("Go module name")
+		goModName, err = promptInit("Go module name")
 		if err != nil {
 			log.Error(err)
 			os.Exit(1)
@@ -96,27 +129,13 @@ var initCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		// fs service
-		newFs := fs.NewFsService()
-		res, err := newFs.FindDir(args[0])
-		if err != nil {
-			log.Error(err)
-			os.Exit(1)
-		}
-
 		// generator service
 		newGen := generator.NewGeneratorService()
 
-		// overwrite already dir ?
-		if res != nil {
-			log.Error("Directory name already exist, use another name")
-			os.Exit(1)
-		}
-
 		// create project if no directory
-		if res == nil {
+		if dirName != "" {
 			// create directory service
-			err := newFs.CreateDir(args[0])
+			err := newFs.CreateDir(dirName)
 			if err != nil {
 				log.Error(err)
 				os.Exit(1)
@@ -124,7 +143,7 @@ var initCmd = &cobra.Command{
 
 			// create go module
 			cmd := exec.Command("go", "mod", "init", goModName)
-			cmd.Dir = "./" + args[0]
+			cmd.Dir = "./" + dirName
 			cmd.Stdout = &stdout
 			cmd.Stderr = &stderr
 			err = cmd.Run()
@@ -134,42 +153,42 @@ var initCmd = &cobra.Command{
 			}
 
 			// create domain directory
-			err = newFs.CreateDir("./" + args[0] + "/domain")
+			err = newFs.CreateDir("./" + dirName + "/domain")
 			if err != nil {
 				log.Error(err)
 				os.Exit(1)
 			}
 
 			// generate errors file inside domain
-			err = newGen.GenDomainErrors(args[0])
+			err = newGen.GenDomainErrors(dirName)
 			if err != nil {
 				log.Error(err)
 				os.Exit(1)
 			}
 
 			// generate status_code file inside domain
-			err = newGen.GenDomainStatusCode(args[0])
+			err = newGen.GenDomainStatusCode(dirName)
 			if err != nil {
 				log.Error(err)
 				os.Exit(1)
 			}
 
 			// generate success file inside domain
-			err = newGen.GenDomainSuccess(args[0])
+			err = newGen.GenDomainSuccess(dirName)
 			if err != nil {
 				log.Error(err)
 				os.Exit(1)
 			}
 
 			// generate example file inside domain
-			err = newGen.GenDomainExample(args[0])
+			err = newGen.GenDomainExample(dirName)
 			if err != nil {
 				log.Error(err)
 				os.Exit(1)
 			}
 
 			// create usecase directory
-			err = newFs.CreateDir("./" + args[0] + "/usecase")
+			err = newFs.CreateDir("./" + dirName + "/usecase")
 			if err != nil {
 				log.Error(err)
 				os.Exit(1)
@@ -177,21 +196,21 @@ var initCmd = &cobra.Command{
 
 			// parse file in domain dir
 			p := parser.NewParserService("example")
-			par, err := p.Parser("./" + args[0] + "/domain/example.go")
+			par, err := p.Parser("./" + dirName + "/domain/example.go")
 			if err != nil {
 				log.Error(err)
 				os.Exit(1)
 			}
 
 			// create example usecase based on interface in domain layer
-			err = newGen.GenUsecase(args[0], "example", goModName, par)
+			err = newGen.GenUsecase(dirName, "example", goModName, par)
 			if err != nil {
 				log.Error(err)
 				os.Exit(1)
 			}
 
 			// create repository directory
-			err = newFs.CreateDir("./" + args[0] + "/repository")
+			err = newFs.CreateDir("./" + dirName + "/repository")
 			if err != nil {
 				log.Error(err)
 				os.Exit(1)
@@ -199,25 +218,25 @@ var initCmd = &cobra.Command{
 
 			// create repository layer
 			if dbHelper == domain.GoPg {
-				err = newGen.GenGopgRepository(args[0], "example", goModName, par)
+				err = newGen.GenGopgRepository(dirName, "example", goModName, par)
 				if err != nil {
 					log.Error(err)
 					os.Exit(1)
 				}
 			} else if dbHelper == domain.Gorm {
-				err = newGen.GenGormRepository(args[0], "example", goModName, par)
+				err = newGen.GenGormRepository(dirName, "example", goModName, par)
 				if err != nil {
 					log.Error(err)
 					os.Exit(1)
 				}
 			} else if dbHelper == domain.Sqlx {
-				err = newGen.GenSqlxRepository(args[0], "example", goModName, par)
+				err = newGen.GenSqlxRepository(dirName, "example", goModName, par)
 				if err != nil {
 					log.Error(err)
 					os.Exit(1)
 				}
 			} else if dbHelper == domain.SQL {
-				err = newGen.GenSQLRepository(args[0], "example", goModName, par)
+				err = newGen.GenSQLRepository(dirName, "example", goModName, par)
 				if err != nil {
 					log.Error(err)
 					os.Exit(1)
@@ -225,14 +244,14 @@ var initCmd = &cobra.Command{
 			}
 
 			// create database directory
-			err = newFs.CreateDir("./" + args[0] + "/database")
+			err = newFs.CreateDir("./" + dirName + "/database")
 			if err != nil {
 				log.Error(err)
 				os.Exit(1)
 			}
 
 			// create config directory
-			err = newFs.CreateDir("./" + args[0] + "/database/config")
+			err = newFs.CreateDir("./" + dirName + "/database/config")
 			if err != nil {
 				log.Error(err)
 				os.Exit(1)
@@ -240,25 +259,25 @@ var initCmd = &cobra.Command{
 
 			// create db config
 			if dbHelper == domain.GoPg {
-				err = newGen.GenGopgConfig(args[0], "example", goModName, par)
+				err = newGen.GenGopgConfig(dirName, "example", goModName, par)
 				if err != nil {
 					log.Error(err)
 					os.Exit(1)
 				}
 			} else if dbHelper == domain.Gorm {
-				err = newGen.GenGormConfig(args[0], "example", goModName, par)
+				err = newGen.GenGormConfig(dirName, "example", goModName, par)
 				if err != nil {
 					log.Error(err)
 					os.Exit(1)
 				}
 			} else if dbHelper == domain.Sqlx {
-				err = newGen.GenSqlxConfig(args[0], "example", goModName, par)
+				err = newGen.GenSqlxConfig(dirName, "example", goModName, par)
 				if err != nil {
 					log.Error(err)
 					os.Exit(1)
 				}
 			} else if dbHelper == domain.SQL {
-				err = newGen.GenSQLConfig(args[0], "example", goModName, par)
+				err = newGen.GenSQLConfig(dirName, "example", goModName, par)
 				if err != nil {
 					log.Error(err)
 					os.Exit(1)
@@ -266,21 +285,21 @@ var initCmd = &cobra.Command{
 			}
 
 			// create transport directory
-			err = newFs.CreateDir("./" + args[0] + "/transport")
+			err = newFs.CreateDir("./" + dirName + "/transport")
 			if err != nil {
 				log.Error(err)
 				os.Exit(1)
 			}
 
 			// create middleware directory
-			err = newFs.CreateDir("./" + args[0] + "/middleware")
+			err = newFs.CreateDir("./" + dirName + "/middleware")
 			if err != nil {
 				log.Error(err)
 				os.Exit(1)
 			}
 
 			// create server directory
-			err = newFs.CreateDir("./" + args[0] + "/server")
+			err = newFs.CreateDir("./" + dirName + "/server")
 			if err != nil {
 				log.Error(err)
 				os.Exit(1)
@@ -288,7 +307,7 @@ var initCmd = &cobra.Command{
 
 			// create rest directory
 			if restServer != "no" {
-				err = newFs.CreateDir("./" + args[0] + "/transport/rest")
+				err = newFs.CreateDir("./" + dirName + "/transport/rest")
 				if err != nil {
 					log.Error(err)
 					os.Exit(1)
@@ -297,55 +316,55 @@ var initCmd = &cobra.Command{
 
 			// generate transport rest api
 			if restServer == domain.Echo {
-				err = newGen.GenEchoTransport(args[0], "example", goModName, par)
+				err = newGen.GenEchoTransport(dirName, "example", goModName, par)
 				if err != nil {
 					log.Error(err)
 					os.Exit(1)
 				}
 
-				err = newGen.GenEchoMiddleware(args[0], "example", goModName, par)
+				err = newGen.GenEchoMiddleware(dirName, "example", goModName, par)
 				if err != nil {
 					log.Error(err)
 					os.Exit(1)
 				}
 
-				err = newGen.GenEchoServer(args[0], "example", goModName, par)
+				err = newGen.GenEchoServer(dirName, "example", goModName, par)
 				if err != nil {
 					log.Error(err)
 					os.Exit(1)
 				}
 			} else if restServer == domain.Gin {
-				err = newGen.GenGinTransport(args[0], "example", goModName, par)
+				err = newGen.GenGinTransport(dirName, "example", goModName, par)
 				if err != nil {
 					log.Error(err)
 					os.Exit(1)
 				}
 
-				err = newGen.GenGinServer(args[0], "example", goModName, par)
+				err = newGen.GenGinServer(dirName, "example", goModName, par)
 				if err != nil {
 					log.Error(err)
 					os.Exit(1)
 				}
 			} else if restServer == domain.GorillaMux {
-				err = newGen.GenGorillaMuxTransport(args[0], "example", goModName, par)
+				err = newGen.GenGorillaMuxTransport(dirName, "example", goModName, par)
 				if err != nil {
 					log.Error(err)
 					os.Exit(1)
 				}
 
-				err = newGen.GenGorillaMuxServer(args[0], "example", goModName, par)
+				err = newGen.GenGorillaMuxServer(dirName, "example", goModName, par)
 				if err != nil {
 					log.Error(err)
 					os.Exit(1)
 				}
 			} else if restServer == domain.NetHTTP {
-				err = newGen.GenNetHTTPTransport(args[0], "example", goModName, par)
+				err = newGen.GenNetHTTPTransport(dirName, "example", goModName, par)
 				if err != nil {
 					log.Error(err)
 					os.Exit(1)
 				}
 
-				err = newGen.GenNetHTTPServer(args[0], "example", goModName, par)
+				err = newGen.GenNetHTTPServer(dirName, "example", goModName, par)
 				if err != nil {
 					log.Error(err)
 					os.Exit(1)
@@ -354,19 +373,19 @@ var initCmd = &cobra.Command{
 
 			// generate tranport graphql
 			if graphqlOpt == "yes" || graphqlOpt == "y" {
-				err = newFs.CreateDir("./" + args[0] + "/transport/graphql")
+				err = newFs.CreateDir("./" + dirName + "/transport/graphql")
 				if err != nil {
 					log.Error(err)
 					os.Exit(1)
 				}
 
-				err = newGen.GenGraphqlTransport(args[0], "example", goModName, par)
+				err = newGen.GenGraphqlTransport(dirName, "example", goModName, par)
 				if err != nil {
 					log.Error(err)
 					os.Exit(1)
 				}
 
-				err = newGen.GenGraphqlServer(args[0], "example", goModName, par)
+				err = newGen.GenGraphqlServer(dirName, "example", goModName, par)
 				if err != nil {
 					log.Error(err)
 					os.Exit(1)
@@ -375,19 +394,19 @@ var initCmd = &cobra.Command{
 
 			// generate tranport grpc
 			if grpcOpt == "yes" || grpcOpt == "y" {
-				err = newFs.CreateDir("./" + args[0] + "/transport/grpc")
+				err = newFs.CreateDir("./" + dirName + "/transport/grpc")
 				if err != nil {
 					log.Error(err)
 					os.Exit(1)
 				}
 
-				err = newGen.GenGrpcTransport(args[0], "example", goModName, par)
+				err = newGen.GenGrpcTransport(dirName, "example", goModName, par)
 				if err != nil {
 					log.Error(err)
 					os.Exit(1)
 				}
 
-				err = newGen.GenGrpcServer(args[0], "example", goModName, par)
+				err = newGen.GenGrpcServer(dirName, "example", goModName, par)
 				if err != nil {
 					log.Error(err)
 					os.Exit(1)
@@ -395,40 +414,43 @@ var initCmd = &cobra.Command{
 			}
 
 			// generate main
-			err = newGen.GenMain(args[0], "example", goModName, par)
+			err = newGen.GenMain(dirName, "example", goModName, par)
 			if err != nil {
 				log.Error(err)
 				os.Exit(1)
 			}
 
-			// generate config.json
-			configJSON := []byte(`{
-	"debug": true,
-	"server": {
-		"echo": {
-			"address":":9090"
-		},
-		"gin": {
-			"address":":8090"
-		},
-		"gorilla-mux": {
-			"address":":7090"
-		},
-		"net-http-server-mux": {
-			"address":":6090"
-		},
-		"graphql-server-mux": {
-			"address":":5090"
-		},
-		"grpc": {
-			"address":":50051"
-		}
-	},
-	"context":{
-		"timeout":2
-	}
-}`)
-			err = ioutil.WriteFile("./"+args[0]+"/config.json", configJSON, 0644)
+			configEnv := []byte(`DATABASE_HOST=127.0.0.1
+DATABASE_PORT=3306
+DATABASE_USER=root
+DATABASE_PASSWORD=root
+DATABASE_NAME=examples
+
+SERVER_ECHO_PORT=9090
+SERVER_GIN_PORT=8090
+SERVER_GORILLA_MUX_PORT=7090
+SERVER_NET_HTTP_SERVER_MUX_PORT=7090
+SERVER_GRAPHQL_SERVER_MUX_PORT=5090
+SERVER_GRPC_PORT=50051`)
+			// generate .env file
+			err = ioutil.WriteFile("./"+dirName+"/.env", configEnv, 0644)
+			if err != nil {
+				log.Error(err)
+				os.Exit(1)
+			}
+
+			// generate .env.example file
+			err = ioutil.WriteFile("./"+dirName+"/.env.example", configEnv, 0644)
+			if err != nil {
+				log.Error(err)
+				os.Exit(1)
+			}
+
+			// generate .gitignore file
+			configGitIgnore := []byte(`.env
+.DS_Store
+vendor`)
+			err = ioutil.WriteFile("./"+dirName+"/.gitignore", configGitIgnore, 0644)
 			if err != nil {
 				log.Error(err)
 				os.Exit(1)
@@ -436,14 +458,14 @@ var initCmd = &cobra.Command{
 
 			// generate README.md
 			readme := []byte(`README.md`)
-			err = ioutil.WriteFile("./"+args[0]+"/README.md", readme, 0644)
+			err = ioutil.WriteFile("./"+dirName+"/README.md", readme, 0644)
 			if err != nil {
 				log.Error(err)
 				os.Exit(1)
 			}
 
 		}
-		fmt.Println(dbHelper, transport)
+		log.Info("Congratulation, your `" + dirName + "` service was successfully initiated !")
 	},
 }
 
