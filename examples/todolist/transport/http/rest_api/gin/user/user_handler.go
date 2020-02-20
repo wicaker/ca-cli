@@ -56,6 +56,8 @@ func (uh *UserHandler) Register(c *gin.Context) {
 // Login will handle login request
 func (uh *UserHandler) Login(c *gin.Context) {
 	var user domain.User
+	domain.ResponseData = make(map[string]interface{})
+
 	err := c.Bind(&user)
 	if err != nil {
 		c.JSON(http.StatusUnprocessableEntity, err.Error())
@@ -83,6 +85,7 @@ func (uh *UserHandler) Login(c *gin.Context) {
 		c.JSON(401, domain.ResponseError{Message: err.Error()})
 		return
 	}
-
-	c.JSON(http.StatusOK, domain.ResponseSuccess{Message: "Login successfully", Data: d})
+	domain.ResponseData["user"] = d
+	domain.ResponseData["message"] = "Login successfully"
+	c.JSON(http.StatusOK, domain.ResponseData)
 }

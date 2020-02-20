@@ -49,7 +49,10 @@ func (th *TaskHandler) FetchTask(c echo.Context) error {
 	if len(res) != 0 {
 		tasks = res
 	}
-	return c.JSON(http.StatusOK, domain.ResponseSuccess{Message: "Successfully load data", Data: &tasks})
+
+	domain.ResponseData = make(map[string]interface{})
+	domain.ResponseData["tasks"] = tasks
+	return c.JSON(http.StatusOK, domain.ResponseData)
 }
 
 // GetByID will handle GetByID request
@@ -78,7 +81,9 @@ func (th *TaskHandler) GetByID(c echo.Context) error {
 		return c.JSON(domain.GetStatusCode(err), domain.ResponseError{Message: err.Error()})
 	}
 
-	return c.JSON(http.StatusOK, domain.ResponseSuccess{Message: "Successfully load data", Data: task})
+	domain.ResponseData = make(map[string]interface{})
+	domain.ResponseData["task"] = task
+	return c.JSON(http.StatusOK, domain.ResponseData)
 }
 
 // Store will handle Store request

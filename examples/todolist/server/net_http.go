@@ -28,7 +28,7 @@ func ServeMux(db *gorm.DB) http.Handler {
 	handler = middL.CORS(handler)
 	handler = parseURL(handler)
 
-	timeoutContext := time.Duration(2) * time.Millisecond
+	timeoutContext := time.Duration(2) * time.Second
 
 	userRepo := _userGormRepo.NewUserGormRepository(db)
 	userUcase := _userUseCase.NewUserUsecase(userRepo, timeoutContext)

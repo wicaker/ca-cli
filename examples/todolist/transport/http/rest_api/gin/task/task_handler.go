@@ -30,6 +30,7 @@ func NewTaskHandler(r *gin.Engine, u domain.TaskUsecase) {
 // FetchTask will handle FetchTask request
 func (th *TaskHandler) FetchTask(c *gin.Context) {
 	tasks := []*domain.Task{}
+	domain.ResponseData = make(map[string]interface{})
 	tokenHeader := c.Request.Header.Get("x-access-token")
 	token, err := middleware.JwtVerify(tokenHeader)
 	if err != nil {
@@ -51,7 +52,8 @@ func (th *TaskHandler) FetchTask(c *gin.Context) {
 	if len(res) != 0 {
 		tasks = res
 	}
-	c.JSON(http.StatusOK, domain.ResponseSuccess{Message: "Successfully load data", Data: &tasks})
+	domain.ResponseData["tasks"] = tasks
+	c.JSON(http.StatusOK, domain.ResponseData)
 	return
 }
 

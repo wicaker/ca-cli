@@ -9,11 +9,11 @@ import (
 
 // SQLInit will connecting service to databsase using database/sql standard library
 func SQLInit() *sql.DB {
-	dbHost := os.Getenv("DATABASE_HOST")
-	dbPort := os.Getenv("DATABASE_PORT")
-	dbUser := os.Getenv("DATABASE_USER")
-	dbPass := os.Getenv("DATABASE_PASSWORD")
-	dbName := os.Getenv("DATABASE_NAME")
+	dbHost := os.Getenv("DATABASE_HOST_MYSQL")
+	dbPort := os.Getenv("DATABASE_PORT_MYSQL")
+	dbUser := os.Getenv("DATABASE_USER_MYSQL")
+	dbPass := os.Getenv("DATABASE_PASSWORD_MYSQL")
+	dbName := os.Getenv("DATABASE_NAME_MYSQL")
 
 	connection := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", dbUser, dbPass, dbHost, dbPort, dbName)
 	val := url.Values{}
