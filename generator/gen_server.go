@@ -73,8 +73,9 @@ func getUsecase(path string, gomodName string) []jen.Code {
 	return repo
 }
 
-func getHandler(path string, gomodName string) []jen.Code {
+func getHandler(dirName string, transport string, gomodName string) []jen.Code {
 	var repo []jen.Code
+	path := dirName + transport
 
 	fs := afero.NewOsFs()
 	res, err := afero.ReadDir(fs, path)
@@ -97,7 +98,7 @@ func getHandler(path string, gomodName string) []jen.Code {
 			fileName := reg.ReplaceAllString(res[i].Name(), "")
 			handlerName := par.Handler.Method[0].Name
 			usecaseName := fileName[:len(fileName)-9]
-			repo = append(repo, jen.Qual(path, handlerName).Call(jen.Id("e"), jen.Id(usecaseName+"usecase")))
+			repo = append(repo, jen.Qual(gomodName+transport, handlerName).Call(jen.Id("e"), jen.Id(usecaseName+"usecase")))
 		}
 	}
 	return repo
@@ -113,10 +114,10 @@ func (gen *caGen) GenEchoServer(dirName string, domainName string, gomodName str
 		jen.Id("middl").Op(":=").Qual(gomodName+"/middleware", "InitEchoMiddleware").Call(),
 		jen.Id("e").Dot("Use").Call(jen.Id("middl").Dot("MiddlewareLogging")),
 		jen.Id("e").Dot("Use").Call(jen.Id("middl").Dot("CORS")),
-		jen.Id("timeoutContext").Op(":=").Qual("time", "Duration").Call(jen.Lit(2).Call(jen.Lit("context.timeout"))).Op("*").Qual("time", "Second"),
+		jen.Id("timeoutContext").Op(":=").Qual("time", "Duration").Call(jen.Lit(2)).Op("*").Qual("time", "Second"),
 		getRepository(dirName, gomodName)[0],
 		getUsecase(dirName, gomodName)[0],
-		getHandler(dirName+"/transport/rest", gomodName)[0],
+		getHandler(dirName, "/transport/rest", gomodName)[0],
 
 		// read repository folder
 		// read usecase folder

@@ -15,6 +15,7 @@ func (gen *caGen) GenGopgRepository(dirName string, domainName string, gomodName
 	comment := fmt.Sprintf("NewGopg%s will create new an gopg%s object representation of domain.%s interface", repository, repository, repository)
 	f := jen.NewFile("repository")
 	f.ImportAlias("github.com/go-pg/pg/v9", "pg")
+	f.ImportName("context", "context")
 
 	f.Type().Id("gopg" + repository).Struct(
 		jen.Id("Conn").Op("*").Qual("github.com/go-pg/pg/v9", "DB"),
@@ -58,12 +59,11 @@ func (gen *caGen) GenGopgRepository(dirName string, domainName string, gomodName
 					returnV = append(returnV, jen.Nil())
 				}
 			}
-
 		}
 		f.Func().
-			Params(jen.Id(string(domainName[0]) + "r").Op("*").Id("gopg" + repository)).
+			Params(jen.Id(string(domainName[0])+"r").Op("*").Id("gopg"+repository)).
 			Id(i.Name).Params(param[:]...).Call(result[:]...).Block(
-
+			jen.If(jen.Id("ctx").Op("==").Nil()).Block(jen.Id("ctx").Op("=").Qual("context", "Background").Call()),
 			// jen.List(jen.Id("ctx"), jen.Id("cancel")).Op(":=").Qual("context", "WithTimeout").Call(jen.Id("ctx"), jen.Qual(string(domainName[0])+"u", "contextTimeout")),
 			// jen.Id("defer").Id("cancel").Call(),
 			jen.Return(returnV[:]...),
@@ -129,13 +129,14 @@ func (gen *caGen) GenGormRepository(dirName string, domainName string, gomodName
 					returnV = append(returnV, jen.Nil())
 				}
 			}
-
 		}
+
 		f.Func().
-			Params(jen.Id(string(domainName[0]) + "r").Op("*").Id("gorm" + repository)).
+			Params(jen.Id(string(domainName[0])+"r").Op("*").Id("gorm"+repository)).
 			Id(i.Name).Params(param[:]...).Call(result[:]...).Block(
 			// jen.List(jen.Id("ctx"), jen.Id("cancel")).Op(":=").Qual("context", "WithTimeout").Call(jen.Id("ctx"), jen.Qual(string(domainName[0])+"u", "contextTimeout")),
 			// jen.Id("defer").Id("cancel").Call(),
+			jen.If(jen.Id("ctx").Op("==").Nil()).Block(jen.Id("ctx").Op("=").Qual("context", "Background").Call()),
 			jen.Return(returnV[:]...),
 		)
 	}

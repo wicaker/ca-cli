@@ -17,13 +17,6 @@ func (gen *caGen) GenMain(dirName string, domainName string, gomodName string, p
 		jen.If(jen.Id("err").Op("!=").Nil()).Block(
 			jen.Qual("github.com/sirupsen/logrus", "Print").Call(jen.Id("err")),
 		),
-
-		jen.Comment("viper configuration"),
-		jen.Qual("github.com/spf13/viper", "SetConfigFile").Call(jen.Lit("config.json")),
-		jen.Id("err").Op("=").Qual("github.com/spf13/viper", "ReadInConfig").Call(),
-		jen.If(jen.Id("err").Op("!=").Nil()).Block(
-			jen.Id("panic").Call(jen.Id("err")),
-		),
 	)
 
 	f.Func().Id("main").Params().Block(
@@ -33,7 +26,7 @@ func (gen *caGen) GenMain(dirName string, domainName string, gomodName string, p
 		jen.Go().Func().Params().Block(
 			jen.Id("eServer").Op(":=").Qual(gomodName+"/server", "EchoServer").Call(jen.Id("dbGopg")),
 			jen.Id("srv").Op(":=").Op("&").Qual("net/http", "Server").Values(jen.Dict{
-				jen.Id("Addr"):         jen.Qual("github.com/spf13/viper", "GetString").Call(jen.Lit("server.echo.address")),
+				jen.Id("Addr"):         jen.Lit(":").Op("+").Qual("os", "Getenv").Call(jen.Lit("SERVER_ECHO_PORT")),
 				jen.Id("WriteTimeout"): jen.Lit(15).Op("*").Qual("time", "Second"),
 				jen.Id("ReadTimeout"):  jen.Lit(15).Op("*").Qual("time", "Second"),
 			}),
