@@ -1,3 +1,6 @@
+/*
+Package generator used to generate codes and create a file based on the layer
+*/
 package generator
 
 import (
@@ -8,7 +11,7 @@ type caGen struct {
 	gen domain.Generator
 }
 
-// NewGeneratorService /
+// NewGeneratorService will create new a caGen object representation of domain.Generator interface
 func NewGeneratorService() domain.GeneratorService {
 	return &caGen{}
 }

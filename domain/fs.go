@@ -9,7 +9,7 @@ type Fs struct {
 // FsService /
 type FsService interface {
 	FindDir(dirName string) (interface{}, error)
-	FindFile(fileName string) error
+	FindFile(fileName string) (interface{}, error)
 	CreateDir(dirName string) error
 	CreateFile(fileName string) error
 	RemoveDir(dirName string) error

@@ -36,4 +36,5 @@ type GeneratorService interface {
 	GenGorillaMuxMiddleware(dirName string, domainName string, gomodName string, parser *Parser) error
 	GenNetHTTPMiddleware(dirName string, domainName string, gomodName string, parser *Parser) error
 	GenMain(dirName string, domainName string, gomodName string, parser *Parser) error
+	GenEnv(dirName string) error
 }

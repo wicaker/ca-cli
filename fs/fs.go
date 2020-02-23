@@ -27,7 +27,14 @@ func (f *caFs) FindDir(dirName string) (interface{}, error) {
 	return res, nil
 }
 
-func (f *caFs) FindFile(fileName string) error { return nil }
+func (f *caFs) FindFile(fileName string) (interface{}, error) {
+	res, err := afero.ReadFile(f.fs, fileName)
+	if err != nil {
+		return nil, nil
+	}
+
+	return res, nil
+}
 
 func (f *caFs) CreateDir(dirName string) error {
 	err := f.fs.Mkdir(dirName, 0755)
