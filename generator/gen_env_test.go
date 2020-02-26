@@ -41,7 +41,7 @@ func TestGenerateEnvFile(t *testing.T) {
 		}
 	})
 
-	t.Run("failure, because directory not found", func(t *testing.T) {
+	t.Run("failed, because directory not found", func(t *testing.T) {
 		// generate env file
 		gen := generator.NewGeneratorService()
 		err := gen.GenEnv(serviceName)
