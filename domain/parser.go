@@ -7,12 +7,12 @@ type Parser struct {
 	Handler
 }
 
-// ParserService /
-type ParserService interface {
-	Parser(filePath string) (*Parser, error)
+// ParserDomain /
+type ParserDomain interface {
+	DomainParser(filePath string) (*Parser, error)
 }
 
-// RepoParserService /
-type RepoParserService interface {
-	RepoParser(filePath string) (*Parser, error)
+// ParserGeneral /
+type ParserGeneral interface {
+	GeneralParser(filePath string) (*Parser, error)
 }
