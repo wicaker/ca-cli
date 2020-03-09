@@ -1,3 +1,6 @@
+/*
+Package fs provides methods for interacting with the filesystem
+*/
 package fs
 
 import (
@@ -10,7 +13,7 @@ type caFs struct {
 	fs afero.Fs
 }
 
-// NewFsService creates /
+// NewFsService will create new a caFs object representation of domain.FsService interface
 func NewFsService() domain.FsService {
 	fs := afero.NewOsFs()
 	return &caFs{
@@ -18,6 +21,7 @@ func NewFsService() domain.FsService {
 	}
 }
 
+// FindDir is a method for find a directory based on directory name
 func (f *caFs) FindDir(dirName string) (interface{}, error) {
 	res, err := afero.ReadDir(f.fs, dirName)
 	if err != nil {
