@@ -11,10 +11,10 @@ func (gen *caGen) GenGopgConfig(dirName string) error {
 	f.Comment("GopgInit will connecting service to databsase using go-pg orm")
 	f.Func().Id("GopgInit").Params().Op("*").Qual("github.com/go-pg/pg/v9", "DB").Block(
 		jen.Id("db").Op(":=").Qual("github.com/go-pg/pg/v9", "Connect").Call(jen.Op("&").Qual("github.com/go-pg/pg/v9", "Options").Values(jen.Dict{
-			jen.Id("Addr"):     jen.Qual("os", "Getenv").Call(jen.Lit("DATABASE_HOST_PG")).Op("+").Lit(":").Op("+").Qual("os", "Getenv").Call(jen.Lit("DATABASE_PORT_PG")),
-			jen.Id("Database"): jen.Qual("os", "Getenv").Call(jen.Lit("DATABASE_NAME_PG")),
-			jen.Id("Password"): jen.Qual("os", "Getenv").Call(jen.Lit("DATABASE_PASSWORD_PG")),
-			jen.Id("User"):     jen.Qual("os", "Getenv").Call(jen.Lit("DATABASE_USER_PG")),
+			jen.Id("Addr"):     jen.Qual("os", "Getenv").Call(jen.Lit("DATABASE_HOST")).Op("+").Lit(":").Op("+").Qual("os", "Getenv").Call(jen.Lit("DATABASE_PORT")),
+			jen.Id("Database"): jen.Qual("os", "Getenv").Call(jen.Lit("DATABASE_NAME")),
+			jen.Id("Password"): jen.Qual("os", "Getenv").Call(jen.Lit("DATABASE_PASSWORD")),
+			jen.Id("User"):     jen.Qual("os", "Getenv").Call(jen.Lit("DATABASE_USER")),
 		})),
 		jen.Line(),
 		jen.Return(jen.Id("db")),
