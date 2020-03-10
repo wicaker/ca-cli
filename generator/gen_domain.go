@@ -24,7 +24,7 @@ func (gen *caGen) GenDomainErrors(dirName string) error {
 		jen.Id("ErrUnauthorized").Op("=").Qual("errors", "New").Call(jen.Lit("Unauthorized")),
 	)
 
-	err := f.Save(dirName + "/domain/errors.go")
+	err := f.Save(dirName + "/errors.go")
 	if err != nil {
 		return err
 	}
@@ -51,7 +51,7 @@ func (gen *caGen) GenDomainStatusCode(dirName string) error {
 		),
 	)
 
-	err := f.Save(dirName + "/domain/status_code.go")
+	err := f.Save(dirName + "/status_code.go")
 	if err != nil {
 		return err
 	}
@@ -71,7 +71,7 @@ func (gen *caGen) GenDomainSuccess(dirName string) error {
 		jen.Id("ResponseData").Map(jen.String()).Interface(),
 	)
 
-	err := f.Save(dirName + "/domain/success.go")
+	err := f.Save(dirName + "/success.go")
 	if err != nil {
 		return err
 	}
@@ -108,7 +108,7 @@ func (gen *caGen) GenDomainExample(dirName string) error {
 		jen.Id("Delete").Params(jen.Id("ctx").Qual("context", "Context"), jen.Id("id").Uint64()).Call(jen.Error()),
 	)
 
-	err := f.Save(dirName + "/domain/example.go")
+	err := f.Save(dirName + "/example.go")
 	if err != nil {
 		return err
 	}
