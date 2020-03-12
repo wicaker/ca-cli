@@ -2,34 +2,53 @@ package generator
 
 import (
 	"fmt"
+	"path"
+	"path/filepath"
+	"strings"
 
 	"github.com/wicaker/cacli/domain"
 
 	"github.com/dave/jennifer/jen"
 )
 
-func (gen *caGen) GenUsecase(dirName string, domainName string, gomodName string, parser *domain.Parser) error {
-	useCase := parser.Usecase.Name
-	repository := parser.Repository.Name
-	// domainNameUpper := strings.ToUpper(string(domainName[0])) + string(domainName[1:])
-	newS := fmt.Sprintf("New%s", useCase)
-	comment := fmt.Sprintf("%s will create new an %sUsecase object representation of domain.%s interface ", newS, domainName, useCase)
+func (gen *caGen) GenUsecase(dirName string, domainFile string, gomodName string, parser *domain.Parser) error {
+	var (
+		file       = path.Base(domainFile)
+		domainName = strings.TrimSuffix(file, filepath.Ext(file))
+		useCase    = parser.Usecase.Name
+		repository = parser.Repository.Name
+		newS       = fmt.Sprintf("New%s", useCase)
+		comment    = fmt.Sprintf("%s will create new an %sUsecase object representation of domain.%s interface ", newS, domainName, useCase)
+		structRepo jen.Code
+		paramRepo  jen.Code
+	)
 
 	f := jen.NewFile("usecase")
+
+	funcRepo := jen.Dict{
+		jen.Id("contextTimeout"): jen.Id("timeout"),
+	}
+
+	if repository != "" {
+		structRepo = jen.Id(domainName+"Repo").Qual(gomodName+"/domain", repository)
+		paramRepo = jen.Id(string(domainName[0])+"r").Qual(gomodName+"/domain", repository)
+		funcRepo = jen.Dict{
+			jen.Id(domainName + "Repo"): jen.Id(string(domainName[0]) + "r"),
+			jen.Id("contextTimeout"):    jen.Id("timeout"),
+		}
+	}
+
 	f.Type().Id(domainName+"Usecase").Struct(
-		jen.Id(domainName+"Repo").Qual(gomodName+"/domain", repository),
+		structRepo,
 		jen.Id("contextTimeout").Qual("time", "Duration"),
 	)
 
 	f.Comment(comment)
 	f.Func().Id(newS).Params(
-		jen.Id(string(domainName[0])+"r").Qual(gomodName+"/domain", repository),
+		paramRepo,
 		jen.Id("timeout").Qual("time", "Duration"),
 	).Qual(gomodName+"/domain", useCase).Block(
-		jen.Return(jen.Op("&").Id(domainName + "Usecase").Values(jen.Dict{
-			jen.Id(domainName + "Repo"): jen.Id(string(domainName[0]) + "r"),
-			jen.Id("contextTimeout"):    jen.Id("timeout"),
-		})),
+		jen.Return(jen.Op("&").Id(domainName + "Usecase").Values(funcRepo)),
 	)
 
 	for _, i := range parser.Usecase.Method {
@@ -63,6 +82,7 @@ func (gen *caGen) GenUsecase(dirName string, domainName string, gomodName string
 			}
 
 		}
+		f.Line()
 		f.Func().
 			Params(jen.Id(string(domainName[0])+"u").Op("*").Id(domainName+"Usecase")).
 			Id(i.Name).Params(param[:]...).Call(result[:]...).Block(
@@ -72,11 +92,10 @@ func (gen *caGen) GenUsecase(dirName string, domainName string, gomodName string
 		)
 	}
 
-	fileDir := fmt.Sprintf("%s/usecase/%s_usecase.go", dirName, domainName)
+	fileDir := fmt.Sprintf("%s/%s_usecase.go", dirName, domainName)
 	err := f.Save(fileDir)
 	if err != nil {
 		return err
 	}
-
 	return nil
 }
