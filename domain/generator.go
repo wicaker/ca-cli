@@ -37,4 +37,5 @@ type GeneratorService interface {
 	GenNetHTTPMiddleware(dirName string) error
 	GenMain(dirName string, gomodName string) error
 	GenEnv(dirName string) error
+	GenGitIgnore(dirName string) error
 }
