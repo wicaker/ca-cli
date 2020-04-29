@@ -18,7 +18,7 @@ const (
 
 import (
 	"context"
-	domain "github.com/example/exampleusecase/domain"
+	"github.com/example/exampleusecase/domain"
 	"time"
 )
 
@@ -66,7 +66,7 @@ func (eu *exampleUsecase) Delete(ctx context.Context, id uint64) error {
 
 import (
 	"context"
-	domain "github.com/example/exampleusecase/domain"
+	"github.com/example/exampleusecase/domain"
 	"time"
 )
 

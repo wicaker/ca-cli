@@ -2,8 +2,9 @@ package usecase
 
 import (
 	"context"
-	domain "github.com/wicaker/tests/domain"
 	"time"
+
+	"github.com/wicaker/cacli/parser/mocks/domain"
 )
 
 type exampleUsecase struct {

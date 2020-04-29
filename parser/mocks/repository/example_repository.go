@@ -2,8 +2,9 @@ package repository
 
 import (
 	"context"
+
 	pg "github.com/go-pg/pg/v9"
-	domain "github.com/wicaker/tests/domain"
+	"github.com/wicaker/cacli/parser/mocks/domain"
 )
 
 type gopgExampleRepository struct {

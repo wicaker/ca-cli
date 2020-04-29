@@ -9,6 +9,7 @@ import (
 func (gen *caGen) GenEchoMiddleware(dirName string) error {
 	f := jen.NewFile("middleware")
 	f.ImportAlias("github.com/sirupsen/logrus", "log")
+	f.ImportName("github.com/labstack/echo", "echo")
 
 	f.Comment("EchoMiddleware represent the data-struct for middleware")
 	f.Type().Id("EchoMiddleware").Struct()
@@ -60,6 +61,7 @@ func (gen *caGen) GenEchoMiddleware(dirName string) error {
 func (gen *caGen) GenGinMiddleware(dirName string) error {
 	f := jen.NewFile("middleware")
 	f.ImportAlias("github.com/sirupsen/logrus", "log")
+	f.ImportName("github.com/gin-gonic/gin", "gin")
 
 	f.Comment("GinMiddleware represent the data-struct for middleware")
 	f.Type().Id("GinMiddleware").Struct()

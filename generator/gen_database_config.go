@@ -29,6 +29,7 @@ func (gen *caGen) GenGopgConfig(dirName string) error {
 
 func (gen *caGen) GenGormConfig(dirName string) error {
 	f := jen.NewFile("config")
+	f.ImportName("github.com/jinzhu/gorm", "gorm")
 
 	f.Comment("GormInit will connecting service to databsase using GORM orm")
 	f.Func().Id("GormInit").Params().Op("*").Qual("github.com/jinzhu/gorm", "DB").Block(
@@ -87,6 +88,7 @@ func (gen *caGen) GenSQLConfig(dirName string) error {
 
 func (gen *caGen) GenSqlxConfig(dirName string) error {
 	f := jen.NewFile("config")
+	f.ImportName("github.com/jmoiron/sqlx", "sqlx")
 
 	f.Comment("SqlxInit will connecting service to databsase using sqlx library")
 	f.Func().Id("SqlxInit").Params().Op("*").Qual("github.com/jmoiron/sqlx", "DB").Block(
@@ -110,6 +112,51 @@ func (gen *caGen) GenSqlxConfig(dirName string) error {
 	)
 
 	err := f.Save(dirName + "/sqlx_config.go")
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (gen *caGen) GenMongodConfig(dirName string) error {
+	var (
+		importName = map[string]string{
+			"go.mongodb.org/mongo-driver/mongo":          "mongo",
+			"go.mongodb.org/mongo-driver/mongo/options":  "options",
+			"go.mongodb.org/mongo-driver/mongo/readpref": "readpref",
+		}
+		f = jen.NewFile("config")
+	)
+	f.ImportNames(importName)
+
+	f.Comment("MongodInit will connecting service to databsase using mongo-driver")
+	f.Func().Id("MongodInit").Params().Op("*").Qual("go.mongodb.org/mongo-driver/mongo", "Database").Block(
+		jen.Id("clientOptions").Op(":=").Qual("go.mongodb.org/mongo-driver/mongo/options", "Client").Call().Dot("ApplyURI").Call(jen.Qual("os", "Getenv").Call(jen.Lit("DATABASE_MONGO_URL"))),
+		jen.Id("client").Op(",").Err().Op(":=").Qual("go.mongodb.org/mongo-driver/mongo", "NewClient").Call(jen.Id("clientOptions")),
+		jen.If(jen.Err().Op("!=").Nil()).Block(
+			jen.Qual("log", "Fatal").Call(jen.Err()),
+		),
+		jen.Line(),
+		jen.Id("ctx").Op(",").Id("cancel").Op(":=").Qual("context", "WithTimeout").Call(jen.Qual("context", "Background").Call(), jen.Lit(10).Op("*").Qual("time", "Second")),
+		jen.Err().Op("=").Id("client").Dot("Connect").Call(jen.Id("ctx")),
+		jen.If(jen.Err().Op("!=").Nil()).Block(
+			jen.Qual("log", "Fatal").Call(jen.Err()),
+		),
+		jen.Line(),
+		jen.Defer().Id("cancel").Call(),
+		jen.Line(),
+		jen.Err().Op("=").Id("client").Dot("Ping").Call(jen.Qual("context", "Background").Call(), jen.Qual("go.mongodb.org/mongo-driver/mongo/readpref", "Primary").Call()),
+		jen.If(jen.Err().Op("!=").Nil()).Block(
+			jen.Qual("log", "Fatal").Call(jen.Lit("Couldn't connect to the database "), jen.Err()),
+		).Else().Block(
+			jen.Qual("log", "Println").Call(jen.Lit("Connected!")),
+		),
+		jen.Line(),
+		jen.Id("db").Op(":=").Id("client").Dot("Database").Call(jen.Qual("os", "Getenv").Call(jen.Lit("DATABASE_MONGO_NAME"))),
+		jen.Return(jen.Id("db")),
+	)
+
+	err := f.Save(dirName + "/mongod_config.go")
 	if err != nil {
 		return err
 	}

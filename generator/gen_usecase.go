@@ -24,6 +24,7 @@ func (gen *caGen) GenUsecase(dirName string, domainFile string, gomodName string
 	)
 
 	f := jen.NewFile("usecase")
+	f.ImportName(gomodName+"/domain", "domain")
 
 	funcRepo := jen.Dict{
 		jen.Id("contextTimeout"): jen.Id("timeout"),

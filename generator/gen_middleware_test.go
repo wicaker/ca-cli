@@ -16,7 +16,7 @@ const (
 	expected_echo_middleware = `package middleware
 
 import (
-	echo "github.com/labstack/echo"
+	"github.com/labstack/echo"
 	log "github.com/sirupsen/logrus"
 	"time"
 )
@@ -60,7 +60,7 @@ func makeLogEntry(c echo.Context) *log.Entry {
 
 import (
 	"fmt"
-	gin "github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin"
 	"time"
 )
 

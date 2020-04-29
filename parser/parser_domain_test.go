@@ -1,7 +1,6 @@
 package parser_test
 
 import (
-	"fmt"
 	"path"
 	"path/filepath"
 	"strings"
@@ -141,7 +140,6 @@ func TestParserDomainLayerSuccess(t *testing.T) {
 
 	t.Run("success, get domain layer information", func(t *testing.T) {
 		res, err := pars.DomainParser(pathFile)
-		fmt.Println("file", file)
 		assert.NoError(t, err)
 		assert.Equal(t, expected, res)
 	})

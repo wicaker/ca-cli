@@ -12,7 +12,7 @@ import (
 func TestParserGeneralLayerSuccess(t *testing.T) {
 	var (
 		pars      domain.ParserGeneral = parser.NewParserGeneral()
-		expecRepo *domain.Parser          = &domain.Parser{
+		expecRepo *domain.Parser       = &domain.Parser{
 			Repository: domain.Repository{
 				Name: "",
 				Method: []domain.Method{

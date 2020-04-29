@@ -37,7 +37,7 @@ func GopgInit() *pg.DB {
 
 import (
 	"fmt"
-	gorm "github.com/jinzhu/gorm"
+	"github.com/jinzhu/gorm"
 	"os"
 )
 
@@ -94,7 +94,7 @@ func SQLInit() *sql.DB {
 
 import (
 	"fmt"
-	sqlx "github.com/jmoiron/sqlx"
+	"github.com/jmoiron/sqlx"
 	"net/url"
 	"os"
 )
@@ -118,6 +118,45 @@ func SqlxInit() *sqlx.DB {
 	}
 
 	return dbConn
+}
+`
+	expected_mongod_config = `package config
+
+import (
+	"context"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/mongo/readpref"
+	"log"
+	"os"
+	"time"
+)
+
+// MongodInit will connecting service to databsase using mongo-driver
+func MongodInit() *mongo.Database {
+	clientOptions := options.Client().ApplyURI(os.Getenv("DATABASE_MONGO_URL"))
+	client, err := mongo.NewClient(clientOptions)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	err = client.Connect(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer cancel()
+
+	err = client.Ping(context.Background(), readpref.Primary())
+	if err != nil {
+		log.Fatal("Couldn't connect to the database ", err)
+	} else {
+		log.Println("Connected!")
+	}
+
+	db := client.Database(os.Getenv("DATABASE_MONGO_NAME"))
+	return db
 }
 `
 )
@@ -161,6 +200,12 @@ func TestGenerateGopgConfig(t *testing.T) {
 		data, err := ioutil.ReadFile(dirName + "/gopg_config.go")
 		if err != nil {
 			log.Error("File reading error", err)
+			// remove directory of service
+			err = newFs.RemoveDir(serviceName)
+			if err != nil {
+				log.Error(err)
+				os.Exit(1)
+			}
 			os.Exit(1)
 		}
 		assert.Equal(t, expected_gopg_config, string(data))
@@ -221,6 +266,12 @@ func TestGenerateGormConfig(t *testing.T) {
 		data, err := ioutil.ReadFile(dirName + "/gorm_config.go")
 		if err != nil {
 			log.Error("File reading error", err)
+			// remove directory of service
+			err = newFs.RemoveDir(serviceName)
+			if err != nil {
+				log.Error(err)
+				os.Exit(1)
+			}
 			os.Exit(1)
 		}
 		assert.Equal(t, expected_gorm_config, string(data))
@@ -281,6 +332,12 @@ func TestGenerateSQLConfig(t *testing.T) {
 		data, err := ioutil.ReadFile(dirName + "/sql_config.go")
 		if err != nil {
 			log.Error("File reading error", err)
+			// remove directory of service
+			err = newFs.RemoveDir(serviceName)
+			if err != nil {
+				log.Error(err)
+				os.Exit(1)
+			}
 			os.Exit(1)
 		}
 		assert.Equal(t, expected_sql_config, string(data))
@@ -341,6 +398,12 @@ func TestGenerateSqlxConfig(t *testing.T) {
 		data, err := ioutil.ReadFile(dirName + "/sqlx_config.go")
 		if err != nil {
 			log.Error("File reading error", err)
+			// remove directory of service
+			err = newFs.RemoveDir(serviceName)
+			if err != nil {
+				log.Error(err)
+				os.Exit(1)
+			}
 			os.Exit(1)
 		}
 		assert.Equal(t, expected_sqlx_config, string(data))
@@ -357,6 +420,72 @@ func TestGenerateSqlxConfig(t *testing.T) {
 		// generate sqlx_config file
 		gen := generator.NewGeneratorService()
 		err := gen.GenGopgConfig(serviceName)
+
+		assert.Error(t, err)
+	})
+}
+
+func TestGenerateMongdConfig(t *testing.T) {
+	var (
+		serviceName = "test_mongod_config"
+		dirDb       = "database"
+		dirConf     = "config"
+		dirName     = fmt.Sprintf("%s/%s/%s", serviceName, dirDb, dirConf)
+		newFs       = fs.NewFsService()
+	)
+
+	t.Run("success, should generate an mongod_config.go file", func(t *testing.T) {
+		// create directory of service
+		err := newFs.CreateDir(serviceName)
+		if err != nil {
+			log.Error(err)
+			os.Exit(1)
+		}
+
+		err = newFs.CreateDir(serviceName + "/" + dirDb)
+		if err != nil {
+			log.Error(err)
+			os.Exit(1)
+		}
+
+		err = newFs.CreateDir(serviceName + "/" + dirDb + "/" + dirConf)
+		if err != nil {
+			log.Error(err)
+			os.Exit(1)
+		}
+
+		// generate mongod_config.go file
+		gen := generator.NewGeneratorService()
+		err = gen.GenMongodConfig(dirName)
+		resGopg, err := newFs.FindFile(dirName + "/mongod_config.go")
+		assert.NoError(t, err)
+		assert.NotEqual(t, nil, resGopg)
+
+		data, err := ioutil.ReadFile(dirName + "/mongod_config.go")
+		if err != nil {
+			log.Error("File reading error", err)
+			// remove directory of service
+			err = newFs.RemoveDir(serviceName)
+			if err != nil {
+				log.Error(err)
+				os.Exit(1)
+			}
+			os.Exit(1)
+		}
+		assert.Equal(t, expected_mongod_config, string(data))
+
+		// remove directory of service
+		err = newFs.RemoveDir(serviceName)
+		if err != nil {
+			log.Error(err)
+			os.Exit(1)
+		}
+	})
+
+	t.Run("failed, because directory not found", func(t *testing.T) {
+		// generate mongod_config file
+		gen := generator.NewGeneratorService()
+		err := gen.GenMongodConfig(serviceName)
 
 		assert.Error(t, err)
 	})

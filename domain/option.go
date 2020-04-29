@@ -15,6 +15,8 @@ var (
 	Sqlx = "sqlx"
 	// SQL standard database handle option
 	SQL = "sql"
+	// Mongod database handler option
+	Mongod = "mongod"
 	// Echo server handler option
 	Echo = "echo"
 	// Gin server handler option

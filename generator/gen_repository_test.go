@@ -18,7 +18,7 @@ const (
 
 import (
 	"context"
-	domain "github.com/example/examplerepository/domain"
+	"github.com/example/examplerepository/domain"
 	pg "github.com/go-pg/pg/v9"
 )
 
@@ -71,8 +71,8 @@ func (er *gopgExampleRepository) Delete(ctx context.Context, id uint64) error {
 
 import (
 	"context"
-	domain "github.com/example/examplerepository/domain"
-	gorm "github.com/jinzhu/gorm"
+	"github.com/example/examplerepository/domain"
+	"github.com/jinzhu/gorm"
 )
 
 type gormExampleRepository struct {
@@ -125,7 +125,7 @@ func (er *gormExampleRepository) Delete(ctx context.Context, id uint64) error {
 import (
 	"context"
 	"database/sql"
-	domain "github.com/example/examplerepository/domain"
+	"github.com/example/examplerepository/domain"
 )
 
 type sqlExampleRepository struct {
@@ -177,8 +177,8 @@ func (er *sqlExampleRepository) Delete(ctx context.Context, id uint64) error {
 
 import (
 	"context"
-	domain "github.com/example/examplerepository/domain"
-	sqlx "github.com/jmoiron/sqlx"
+	"github.com/example/examplerepository/domain"
+	"github.com/jmoiron/sqlx"
 )
 
 type sqlxExampleRepository struct {
@@ -219,6 +219,58 @@ func (er *sqlxExampleRepository) Update(ctx context.Context, exp *domain.Example
 }
 
 func (er *sqlxExampleRepository) Delete(ctx context.Context, id uint64) error {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	return nil
+}
+`
+	expected_mongod_example_repository = `package repository
+
+import (
+	"context"
+	"github.com/example/examplerepository/domain"
+	"go.mongodb.org/mongo-driver/mongo"
+)
+
+type mongodExampleRepository struct {
+	Conn *mongo.Database
+}
+
+// NewMongodExampleRepository will create new an mongodExampleRepository object representation of domain.ExampleRepository interface
+func NewMongodExampleRepository(Conn *mongo.Database) domain.ExampleRepository {
+	return &mongodExampleRepository{Conn: Conn}
+}
+
+func (er *mongodExampleRepository) Fetch(ctx context.Context) ([]*domain.Example, error) {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	return nil, nil
+}
+
+func (er *mongodExampleRepository) GetByID(ctx context.Context, id uint64) (*domain.Example, error) {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	return nil, nil
+}
+
+func (er *mongodExampleRepository) Store(ctx context.Context, exp *domain.Example) (*domain.Example, error) {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	return nil, nil
+}
+
+func (er *mongodExampleRepository) Update(ctx context.Context, exp *domain.Example) (*domain.Example, error) {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	return nil, nil
+}
+
+func (er *mongodExampleRepository) Delete(ctx context.Context, id uint64) error {
 	if ctx == nil {
 		ctx = context.Background()
 	}
@@ -706,6 +758,127 @@ func TestGenerateSqlxRepository(t *testing.T) {
 		// generate example_repository file
 		gen := generator.NewGeneratorService()
 		err := gen.GenGopgRepository(dirName, domainFile, gomodName, parser)
+
+		assert.Error(t, err)
+	})
+}
+
+func TestGenerateMongodRepository(t *testing.T) {
+	var (
+		serviceName = "test_example_repository"
+		dirLayer    = "repository"
+		domainFile  = "example.go"
+		gomodName   = "github.com/example/examplerepository"
+		dirName     = fmt.Sprintf("%s/%s", serviceName, dirLayer)
+		parser      = &domain.Parser{
+			Repository: domain.Repository{
+				Name: "ExampleRepository",
+				Method: []domain.Method{
+					domain.Method{
+						Name: "Fetch",
+						ParameterList: []domain.MethodValue{
+							domain.MethodValue{Name: "ctx", Type: "context.Context"},
+						},
+						ResultList: []domain.MethodValue{
+							domain.MethodValue{Type: "[]*domain.Example"},
+							domain.MethodValue{Type: "error"},
+						},
+					},
+					domain.Method{
+						Name: "GetByID",
+						ParameterList: []domain.MethodValue{
+							domain.MethodValue{Name: "ctx", Type: "context.Context"},
+							domain.MethodValue{Name: "id", Type: "uint64"},
+						},
+						ResultList: []domain.MethodValue{
+							domain.MethodValue{Type: "*domain.Example"},
+							domain.MethodValue{Type: "error"},
+						},
+					},
+					domain.Method{
+						Name: "Store",
+						ParameterList: []domain.MethodValue{
+							domain.MethodValue{Name: "ctx", Type: "context.Context"},
+							domain.MethodValue{Name: "exp", Type: "*domain.Example"},
+						},
+						ResultList: []domain.MethodValue{
+							domain.MethodValue{Type: "*domain.Example"},
+							domain.MethodValue{Type: "error"},
+						},
+					},
+					domain.Method{
+						Name: "Update",
+						ParameterList: []domain.MethodValue{
+							domain.MethodValue{Name: "ctx", Type: "context.Context"},
+							domain.MethodValue{Name: "exp", Type: "*domain.Example"},
+						},
+						ResultList: []domain.MethodValue{
+							domain.MethodValue{Type: "*domain.Example"},
+							domain.MethodValue{Type: "error"},
+						},
+					},
+					domain.Method{
+						Name: "Delete",
+						ParameterList: []domain.MethodValue{
+							domain.MethodValue{Name: "ctx", Type: "context.Context"},
+							domain.MethodValue{Name: "id", Type: "uint64"},
+						},
+						ResultList: []domain.MethodValue{
+							domain.MethodValue{Type: "error"},
+						},
+					},
+				},
+			},
+		}
+		newFs = fs.NewFsService()
+	)
+
+	t.Run("success, should generate an example_repository.go file", func(t *testing.T) {
+		// create directory of service
+		err := newFs.CreateDir(serviceName)
+		if err != nil {
+			log.Error(err)
+			os.Exit(1)
+		}
+
+		err = newFs.CreateDir(serviceName + "/" + dirLayer)
+		if err != nil {
+			log.Error(err)
+			os.Exit(1)
+		}
+
+		// generate example_repository.go file
+		gen := generator.NewGeneratorService()
+		err = gen.GenMongodRepository(dirName, domainFile, gomodName, parser)
+		resSqlx, err := newFs.FindFile(dirName + "/example_repository.go")
+		assert.NoError(t, err)
+		assert.NotEqual(t, nil, resSqlx)
+
+		data, err := ioutil.ReadFile(dirName + "/example_repository.go")
+		if err != nil {
+			log.Error("File reading error", err)
+			// remove directory of service
+			err = newFs.RemoveDir(serviceName)
+			if err != nil {
+				log.Error(err)
+				os.Exit(1)
+			}
+			os.Exit(1)
+		}
+		assert.Equal(t, expected_mongod_example_repository, string(data))
+
+		// remove directory of service
+		err = newFs.RemoveDir(serviceName)
+		if err != nil {
+			log.Error(err)
+			os.Exit(1)
+		}
+	})
+
+	t.Run("failed, because directory not found", func(t *testing.T) {
+		// generate example_repository file
+		gen := generator.NewGeneratorService()
+		err := gen.GenMongodRepository(dirName, domainFile, gomodName, parser)
 
 		assert.Error(t, err)
 	})

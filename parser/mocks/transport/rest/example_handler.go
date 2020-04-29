@@ -2,9 +2,10 @@ package rest
 
 import (
 	"context"
-	echo "github.com/labstack/echo"
-	domain "github.com/wicaker/tests/domain"
 	"net/http"
+
+	echo "github.com/labstack/echo"
+	"github.com/wicaker/cacli/parser/mocks/domain"
 )
 
 type exampleHandler struct {
@@ -25,38 +26,38 @@ func (eh *exampleHandler) FetchHandler(c echo.Context) error {
 	if ctx == nil {
 		ctx = context.Background()
 	}
-	domain.ResponseData = make(map[string]interface{})
-	return c.JSON(http.StatusOK, domain.ResponseData)
+
+	return c.JSON(http.StatusOK, "response")
 }
 func (eh *exampleHandler) GetByIDHandler(c echo.Context) error {
 	ctx := c.Request().Context()
 	if ctx == nil {
 		ctx = context.Background()
 	}
-	domain.ResponseData = make(map[string]interface{})
-	return c.JSON(http.StatusOK, domain.ResponseData)
+
+	return c.JSON(http.StatusOK, "response")
 }
 func (eh *exampleHandler) StoreHandler(c echo.Context) error {
 	ctx := c.Request().Context()
 	if ctx == nil {
 		ctx = context.Background()
 	}
-	domain.ResponseData = make(map[string]interface{})
-	return c.JSON(http.StatusOK, domain.ResponseData)
+
+	return c.JSON(http.StatusOK, "response")
 }
 func (eh *exampleHandler) UpdateHandler(c echo.Context) error {
 	ctx := c.Request().Context()
 	if ctx == nil {
 		ctx = context.Background()
 	}
-	domain.ResponseData = make(map[string]interface{})
-	return c.JSON(http.StatusOK, domain.ResponseData)
+
+	return c.JSON(http.StatusOK, "response")
 }
 func (eh *exampleHandler) DeleteHandler(c echo.Context) error {
 	ctx := c.Request().Context()
 	if ctx == nil {
 		ctx = context.Background()
 	}
-	domain.ResponseData = make(map[string]interface{})
-	return c.JSON(http.StatusOK, domain.ResponseData)
+
+	return c.JSON(http.StatusOK, "response")
 }
